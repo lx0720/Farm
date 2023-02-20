@@ -1,0 +1,86 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 2
+  tags:
+  - SceneBound
+  - ItemUIImage
+  - ItemParent
+  - CanPickup
+  - Tree
+  - LoadPosition
+  - Dig
+  - Water
+  - CropParent
+  - CursorCanvas
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - 
+  - Water
+  - UI
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  m_SortingLayers:
+  - name: Default
+    uniqueID: 0
+    locked: 0
+  - name: GroundButton
+    uniqueID: 2109226525
+    locked: 0
+  - name: GroundMiddle
+    uniqueID: 1319797445
+    locked: 0
+  - name: GroundTop
+    uniqueID: 4030362319
+    locked: 0
+  - name: Stuff1
+    uniqueID: 358312137
+    locked: 0
+  - name: Stuff2
+    uniqueID: 2333040373
+    locked: 0
+  - name: Dig
+    uniqueID: 3452747
+    locked: 0
+  - name: Water
+    uniqueID: 1819081053
+    locked: 0
+  - name: Instance
+    uniqueID: 1083797937
+    locked: 0
+  - name: Front1
+    uniqueID: 2132809613
+    locked: 0
+  - name: Front2
+    uniqueID: 2429996475
+    locked: 0
+  - name: Collision
+    uniqueID: 2284633505
+    locked: 0
