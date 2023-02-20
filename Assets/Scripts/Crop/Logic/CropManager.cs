@@ -37,34 +37,32 @@ namespace Farm.CropPlant
         private void OnPlantSeedEvent(int ID, TileDetails tileDetails)
         {
             CropDetails currentCrop = GetCropDetails(ID);
-            if (currentCrop != null && SeasonAvailable(currentCrop) && tileDetails.seedItemID == -1)    //鐢ㄤ簬绗竴娆＄妞?
+            if (currentCrop != null && SeasonAvailable(currentCrop) && tileDetails.seedItemID == -1)  
             {
                 tileDetails.seedItemID = ID;
                 tileDetails.growthDays = 0;
-                //鏄剧ず鍐滀綔鐗?
+
                 DisplayCropPlant(tileDetails, currentCrop);
             }
-            else if (tileDetails.seedItemID != -1)  //鐢ㄤ簬鍒锋柊鍦板浘
+            else if (tileDetails.seedItemID != -1)  //当前tile存在作物
             {
-                //鏄剧ず鍐滀綔鐗?
                 DisplayCropPlant(tileDetails, currentCrop);
             }
         }
 
 
         /// <summary>
-        /// 鏄剧ず鍐滀綔鐗?
+        /// 显示作物
         /// </summary>
-        /// <param name="tileDetails">鐡︾墖鍦板浘淇℃伅</param>
-        /// <param name="cropDetails">绉嶅瓙淇℃伅</param>
+        /// <param name="tileDetails">tile的信息</param>
+        /// <param name="cropDetails">作物的信息</param>
         private void DisplayCropPlant(TileDetails tileDetails, CropDetails cropDetails)
         {
-            //鎴愰暱闃舵
             int growthStages = cropDetails.growthDays.Length;
             int currentStage = 0;
             int dayCounter = cropDetails.TotalGrowthDays;
 
-            //鍊掑簭璁＄畻褰撳墠鐨勬垚闀块樁娈?
+            //判断阶段的时间
             for (int i = growthStages - 1; i >= 0; i--)
             {
                 if (tileDetails.growthDays >= dayCounter)
@@ -75,7 +73,7 @@ namespace Farm.CropPlant
                 dayCounter -= cropDetails.growthDays[i];
             }
 
-            //鑾峰彇褰撳墠闃舵鐨凱refab
+            //生成Go
             GameObject cropPrefab = cropDetails.growthPrefabs[currentStage];
             Sprite cropSprite = cropDetails.growthSprites[currentStage];
 
@@ -90,9 +88,9 @@ namespace Farm.CropPlant
 
 
         /// <summary>
-        /// 閫氳繃鐗╁搧ID鏌ユ壘绉嶅瓙淇℃伅
+        /// 得到作物信息
         /// </summary>
-        /// <param name="ID">鐗╁搧ID</param>
+        /// <param name="ID">作物ID</param>
         /// <returns></returns>
         public CropDetails GetCropDetails(int ID)
         {
@@ -100,9 +98,9 @@ namespace Farm.CropPlant
         }
 
         /// <summary>
-        /// 鍒ゆ柇褰撳墠瀛ｈ妭鏄惁鍙互绉嶆
+        /// 判断季节是否可用
         /// </summary>
-        /// <param name="crop">绉嶅瓙淇℃伅</param>
+        /// <param name="crop">当前作物的信息</param>
         /// <returns></returns>
         private bool SeasonAvailable(CropDetails crop)
         {

@@ -97,7 +97,7 @@ namespace Farm.Inventory
         {
             if (itemAmount != 0)
             {
-                inventoryUI.GetDragImage().enabled = true;
+                inventoryUI.GetDragImage().gameObject.SetActive(true);
                 inventoryUI.GetDragImage().sprite = slotImage.sprite;
                 inventoryUI.GetDragImage().SetNativeSize();
 
@@ -113,8 +113,7 @@ namespace Farm.Inventory
 
         public void OnEndDrag(PointerEventData eventData)
         {
-            inventoryUI.GetDragImage().enabled = false;
-            // Debug.Log(eventData.pointerCurrentRaycast.gameObject);
+            inventoryUI.GetDragImage().gameObject.SetActive(false);
 
             if (eventData.pointerCurrentRaycast.gameObject != null)
             {

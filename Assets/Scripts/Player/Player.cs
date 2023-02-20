@@ -105,7 +105,7 @@ public class Player : MonoBehaviour
         if (useTool)
             return;
 
-        //TODO:执行动画
+        //执行动画
         if (itemDetails.itemType != ItemType.Seed && itemDetails.itemType != ItemType.Commodity && itemDetails.itemType != ItemType.Furniture)
         {
             mouseX = mouseWorldPos.x - transform.position.x;

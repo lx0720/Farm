@@ -41,7 +41,7 @@ public class AnimatorOverride : MonoBehaviour
     private void OnHarvestAtPlayerPosition(int ID)
     {
         Sprite itemSprite = InventoryManager.Instance.GetItemDetails(ID).itemOnWorldSprite;
-        if (holdItem.enabled == false)
+        if (!holdItem.gameObject.activeInHierarchy)
         {
             StartCoroutine(ShowItem(itemSprite));
         }
@@ -51,9 +51,9 @@ public class AnimatorOverride : MonoBehaviour
     private IEnumerator ShowItem(Sprite itemSprite)
     {
         holdItem.sprite = itemSprite;
-        holdItem.enabled = true;
+        holdItem.gameObject.SetActive(true);
         yield return new WaitForSeconds(1f);
-        holdItem.enabled = false;
+        holdItem.gameObject.SetActive(false);
     }
 
     private void OnBeforSceneUnloadEvent()

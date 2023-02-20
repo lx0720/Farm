@@ -8,6 +8,7 @@ using UnityEngine.UI;
 public class CursorManager : MonoBehaviour
 {
     public Sprite normal, tool, seed;
+    private Sprite item;
 
     private Sprite currentSprite;   //获取当前的精灵
     private Image cursorImage;
@@ -76,7 +77,7 @@ public class CursorManager : MonoBehaviour
         else
         {
             SetCursorImage(normal);
-            if(currentItem!=null&& currentItem.itemType != ItemType.Furniture)
+            if(currentItem!=null&& currentItem.itemType == ItemType.Furniture)
                 buildImage.gameObject.SetActive(true);
             else
                 buildImage.gameObject.SetActive(false);
@@ -153,10 +154,11 @@ public class CursorManager : MonoBehaviour
         else    //选择物体之后鼠标显示对应的图标
         {
             currentItem = itemDetails;
+            item = itemDetails.itemOnWorldSprite == null ? itemDetails.itemIcon : itemDetails.itemOnWorldSprite;
             currentSprite = itemDetails.itemType switch
             {
                 ItemType.Seed => seed,
-                ItemType.Commodity => itemDetails.itemOnWorldSprite,
+                ItemType.Commodity => item,
                 ItemType.ChopTool => tool,
                 ItemType.HoeTool => tool,
                 ItemType.WaterTool => tool,
@@ -171,6 +173,7 @@ public class CursorManager : MonoBehaviour
             //如果物体时蓝图，那么显示家具样子
             if (itemDetails.itemType == ItemType.Furniture)
             {
+                Debug.Log("家具");
                 buildImage.gameObject.SetActive(true);
                 buildImage.sprite = itemDetails.itemOnWorldSprite;
                 buildImage.SetNativeSize();

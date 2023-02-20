@@ -172,7 +172,6 @@ namespace Farm.Inventory
                         {
                             var item = InventoryManager.Instance.GetItemDetails(list[i].itemID);
                             playerSlots[i].UpdateSlot(item, list[i].itemAmount);
-                            Debug.Log("Ë¢ÐÂ");
                         }
                         else
                         {

@@ -17,18 +17,18 @@ public class Crop : MonoBehaviour
     {
         tileDetails = tile;
 
-        //宸ュ叿浣跨敤娆℃暟
+        //需要执行的次数
         int requireActionCount = cropDetails.GetTotalRequireCount(tool.itemID);
         if (requireActionCount == -1) return;
 
         anim = GetComponentInChildren<Animator>();
 
-        //鐐瑰嚮璁℃暟鍣?
+        //收获次数
         if (harvestActionCount < requireActionCount)
         {
             harvestActionCount++;
 
-            //鍒ゆ柇鏄惁鏈夊姩鐢? 鏍戞湪
+            //如果当前收获的物体被收获时有动画则播放动画
             if (anim != null && cropDetails.hasAnimation)
             {
                 if (PlayerTransform.position.x < transform.position.x)
@@ -36,10 +36,10 @@ public class Crop : MonoBehaviour
                 else
                     anim.SetTrigger("RotateLeft");
             }
-            //鎾斁绮掑瓙
+            //如果有粒子效果则播放粒子效果
             if (cropDetails.hasParticalEffect)
                 EventCenter.CallParticleEffectEvent(cropDetails.effectType, transform.position + cropDetails.effectPos);
-            //鎾斁澹伴煶
+            //音效
             if (cropDetails.soundEffect != SoundName.none)
             {
                 EventCenter.CallPlaySoundEvent(cropDetails.soundEffect);
@@ -50,7 +50,7 @@ public class Crop : MonoBehaviour
         {
             if (cropDetails.generateAtPlayerPosition || !cropDetails.hasAnimation)
             {
-                //鐢熸垚鍐滀綔鐗?
+                //收获次数大于需要收获的次数
                 SpawnHarvestItems();
             }
             else if (cropDetails.hasAnimation)
@@ -73,7 +73,7 @@ public class Crop : MonoBehaviour
         }
 
         SpawnHarvestItems();
-        //杞崲鏂扮墿浣?
+        //
         if (cropDetails.transferItemID > 0)
         {
             CreateTransferCrop();
@@ -90,7 +90,7 @@ public class Crop : MonoBehaviour
     }
 
     /// <summary>
-    /// 鐢熸垚鏋滃疄
+    /// 生成庄稼在背包
     /// </summary>
     public void SpawnHarvestItems()
     {
@@ -98,28 +98,28 @@ public class Crop : MonoBehaviour
         {
             int amountToProduce;
 
+            //生成确定的数量
             if (cropDetails.producedMinAmount[i] == cropDetails.producedMaxAmount[i])
             {
-                //浠ｈ〃鍙敓鎴愭寚瀹氭暟閲忕殑
                 amountToProduce = cropDetails.producedMinAmount[i];
             }
-            else    //鐗╁搧闅忔満鏁伴噺
+            else    //否则随机生成最小和最大之间
             {
                 amountToProduce = Random.Range(cropDetails.producedMinAmount[i], cropDetails.producedMaxAmount[i] + 1);
             }
 
-            //鎵ц鐢熸垚鎸囧畾鏁伴噺鐨勭墿鍝?
+            //
             for (int j = 0; j < amountToProduce; j++)
             {
                 if (cropDetails.generateAtPlayerPosition)
                 {
                     EventCenter.CallHarvestAtPlayerPosition(cropDetails.producedItemID[i]);
                 }
-                else    //涓栫晫鍦板浘涓婄敓鎴愮墿鍝?
+                else   
                 {
-                    //鍒ゆ柇搴旇鐢熸垚鐨勭墿鍝佹柟鍚?
+                    //根据当前物体和玩家的距离来判断生成的方向
                     var dirX = transform.position.x > PlayerTransform.position.x ? 1 : -1;
-                    //涓�瀹氳寖鍥村唴鐨勯殢鏈?
+                    //生成的位置
                     var spawnPos = new Vector3(transform.position.x + Random.Range(dirX, cropDetails.spawnRadius.x * dirX),
                     transform.position.y + Random.Range(-cropDetails.spawnRadius.y, cropDetails.spawnRadius.y), 0);
 
@@ -132,19 +132,17 @@ public class Crop : MonoBehaviour
         {
             tileDetails.daysSinceLastHarvest++;
 
-            //鏄惁鍙互閲嶅鐢熼暱
+            //作物可以重复生长
             if (cropDetails.daysToRegrow > 0 && tileDetails.daysSinceLastHarvest < cropDetails.regrowTimes - 1)
             {
                 tileDetails.growthDays = cropDetails.TotalGrowthDays - cropDetails.daysToRegrow;
-                //鍒锋柊绉嶅瓙
+                //改变tile的数据，然后刷新地图
                 EventCenter.CallRefreshCurrentMap();
             }
-            else    //涓嶅彲閲嶅鐢熼暱
+            else  
             {
                 tileDetails.daysSinceLastHarvest = -1;
                 tileDetails.seedItemID = -1;
-                //FIXME:鑷繁璁捐
-                // tileDetails.daysSinceDug = -1;
             }
 
             Destroy(gameObject);

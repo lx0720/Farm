@@ -8,13 +8,12 @@ namespace Farm.Map
 {
     public class GridMapManager : MonoSingleton<GridMapManager>
     {
-        [Header("绉嶅湴鐡︾墖鍒囨崲淇℃伅")]
-        [SerializeField]private RuleTile digTile;
-        [SerializeField]private RuleTile waterTile;
-        private Tilemap digTilemap;
-        private Tilemap waterTilemap;
+        [SerializeField,Header("dig图片")]private RuleTile digTile;
+        [SerializeField,Header("water图片")]private RuleTile waterTile;
+        public Tilemap digTilemap;
+        public Tilemap waterTilemap;
 
-        [Header("鍦板浘淇℃伅")]
+        [Header("所有的Map数据")]
         [SerializeField]private List<MapData_SO> mapDataList;
 
         private Season currentSeason;
@@ -63,8 +62,8 @@ namespace Farm.Map
         private void OnAfterSceneLoadedEvent()
         {
             currentGrid = FindObjectOfType<Grid>();
-            digTilemap = GameObject.FindWithTag("Dig").GetComponent<Tilemap>();
-            waterTilemap = GameObject.FindWithTag("Water").GetComponent<Tilemap>();
+            digTilemap = GameObject.FindGameObjectWithTag("Dig").GetComponent<Tilemap>();
+            waterTilemap = GameObject.FindGameObjectWithTag("Water").GetComponent<Tilemap>();
 
            /* if (firstLoadDict[SceneManager.GetActiveScene().name])
             {
@@ -323,6 +322,7 @@ namespace Farm.Map
         private void SetWaterGround(TileDetails tile)
         {
             Vector3Int pos = new Vector3Int(tile.girdX, tile.gridY, 0);
+            Debug.Log(pos);
             if (waterTilemap != null)
                 waterTilemap.SetTile(pos, waterTile);
         }
