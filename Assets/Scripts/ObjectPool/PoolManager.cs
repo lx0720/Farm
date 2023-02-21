@@ -5,7 +5,8 @@ using UnityEngine.Pool;
 
 public class PoolManager : MonoBehaviour
 {
-    public List<GameObject> poolPrefabs;
+    [SerializeField]private List<GameObject> poolPrefabs;
+
     private List<ObjectPool<GameObject>> poolEffectList = new List<ObjectPool<GameObject>>();
 
     private Queue<GameObject> soundQueue = new Queue<GameObject>();
@@ -29,7 +30,7 @@ public class PoolManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 鐢熸垚瀵硅薄姹?
+    /// 创建对象池
     /// </summary>
     private void CreatePool()
     {
@@ -50,8 +51,8 @@ public class PoolManager : MonoBehaviour
     }
 
     private void OnParticleEffectEvent(ParticleEffectType effectType, Vector3 pos)
-    {
-        //WORKFLOW:鏍规嵁鐗规晥琛ュ叏
+    {   
+        //通过枚举得到需要得对象池
         ObjectPool<GameObject> objPool = effectType switch
         {
             ParticleEffectType.LeavesFalling01 => poolEffectList[0],
@@ -60,7 +61,7 @@ public class PoolManager : MonoBehaviour
             ParticleEffectType.ReapableScenery => poolEffectList[3],
             _ => null,
         };
-
+        //在池子中得到对象
         GameObject obj = objPool.Get();
         obj.transform.position = pos;
         StartCoroutine(ReleaseRoutine(objPool, obj));
@@ -71,22 +72,6 @@ public class PoolManager : MonoBehaviour
         yield return new WaitForSeconds(1.5f);
         pool.Release(obj);
     }
-
-
-    // private void InitSoundEffect(SoundDetails soundDetails)
-    // {
-    //     ObjectPool<GameObject> pool = poolEffectList[4];
-    //     var obj = pool.Get();
-
-    //     obj.GetComponent<Sound>().SetSound(soundDetails);
-    //     StartCoroutine(DisableSound(pool, obj, soundDetails));
-    // }
-
-    // private IEnumerator DisableSound(ObjectPool<GameObject> pool, GameObject obj, SoundDetails soundDetails)
-    // {
-    //     yield return new WaitForSeconds(soundDetails.soundClip.length);
-    //     pool.Release(obj);
-    // }
 
     private void CreateSoundPool()
     {

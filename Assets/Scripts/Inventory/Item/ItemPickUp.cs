@@ -9,7 +9,6 @@ namespace Farm.Inventory
         private void OnTriggerEnter2D(Collider2D other)
         {
             Item item = other.GetComponent<Item>();
-            Debug.Log(item.itemDetails);
             if (item != null)
             {
                 if (item.itemDetails.canPickedup)
