@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Farm.Save;
 
 using UnityEngine;
-public class TimeManager : MonoSingleton<TimeManager>
+public class TimeManager : MonoSingleton<TimeManager>,ISaveable
 {
     private int gameSecond, gameMinute, gameHour, gameDay, gameMonth, gameYear;
     private Season gameSeason = Season.春天;
@@ -41,15 +41,15 @@ public class TimeManager : MonoSingleton<TimeManager>
 
     private void Start()
     {
-        EventCenter.CallStartNewGameEvent(1);
+        //EventCenter.CallStartNewGameEvent(1);
 
-        //ISaveable saveable = this;
-        //saveable.RegisterSaveable();
+        ISaveable saveable = this;
+        saveable.RegisterSaveable();
         //gameClockPause = true;
-       /*  EventCenter.CallGameDateEvent(gameHour, gameDay, gameMonth, gameYear, gameSeason);
-         EventCenter.CallGameMinuteEvent(gameMinute, gameHour, gameDay, gameSeason);*/
+        /*  EventCenter.CallGameDateEvent(gameHour, gameDay, gameMonth, gameYear, gameSeason);
+          EventCenter.CallGameMinuteEvent(gameMinute, gameHour, gameDay, gameSeason);*/
         // //切换灯光
-         /*EventCenter.CallLightShiftChangeEvent(gameSeason, GetCurrentLightShift(), timeDifference);*/
+        /*EventCenter.CallLightShiftChangeEvent(gameSeason, GetCurrentLightShift(), timeDifference);*/
     }
 
     private void Update()
@@ -92,7 +92,6 @@ public class TimeManager : MonoSingleton<TimeManager>
 
     private void NewGameTime()
     {
-        /*Debug.Log("Start New Game!");*/
         gameSecond = 0;
         gameMinute = 0;
         gameHour = 6;
@@ -109,7 +108,7 @@ public class TimeManager : MonoSingleton<TimeManager>
 
     private void OnAfterSceneLoadedEvent()
     {
-        // gameClockPause = false;
+        gameClockPause = false;
         EventCenter.CallGameDateEvent(gameHour, gameDay, gameMonth, gameYear, gameSeason);
         EventCenter.CallGameMinuteEvent(gameMinute, gameHour, gameDay, gameSeason);
         //切换灯光
@@ -118,7 +117,7 @@ public class TimeManager : MonoSingleton<TimeManager>
 
     private void OnBeforeSceneUnloadEvent()
     {
-        // gameClockPause = true;
+        gameClockPause = true;
     }
 
     private void UpdateGameTime()

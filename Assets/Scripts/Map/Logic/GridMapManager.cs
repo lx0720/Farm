@@ -6,12 +6,12 @@ using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
 namespace Farm.Map
 {
-    public class GridMapManager : MonoSingleton<GridMapManager>
+    public class GridMapManager : MonoSingleton<GridMapManager>,ISaveable
     {
         [SerializeField,Header("dig图片")]private RuleTile digTile;
         [SerializeField,Header("water图片")]private RuleTile waterTile;
-        public Tilemap digTilemap;
-        public Tilemap waterTilemap;
+        private Tilemap digTilemap;
+        private Tilemap waterTilemap;
 
         [Header("所有的Map数据")]
         [SerializeField]private List<MapData_SO> mapDataList;
@@ -48,8 +48,8 @@ namespace Farm.Map
 
         private void Start()
         {
-           /* ISaveable saveable = this;
-            saveable.RegisterSaveable();*/
+            ISaveable saveable = this;
+            saveable.RegisterSaveable();
 
 
             foreach (var mapData in mapDataList)
@@ -67,7 +67,6 @@ namespace Farm.Map
 
            /* if (firstLoadDict[SceneManager.GetActiveScene().name])
             {
-                //棰勫厛鐢熸垚鍐滀綔鐗?
                EventCenter.CallGenerateCropEvent();
                 firstLoadDict[SceneManager.GetActiveScene().name] = false;
             }*/
@@ -255,7 +254,7 @@ namespace Farm.Map
         }
 
         /// <summary>
-        /// 
+        /// 得到Grid物体
         /// </summary>
         /// <param name="mouseWorldPos"></param>
         /// <returns></returns>
@@ -275,9 +274,9 @@ namespace Farm.Map
 
 
         /// <summary>
-        /// 杩斿洖宸ュ叿鑼冨洿鍐呯殑鏉傝崏
+        /// 在范围内存在可以收割的物体
         /// </summary>
-        /// <param name="tool">鐗╁搧淇℃伅</param>
+        /// <param name="tool">工具</param>
         /// <returns></returns>
         public bool HaveReapableItemsInRadius(Vector3 mouseWorldPos, ItemDetails tool)
         {

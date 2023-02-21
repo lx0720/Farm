@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement;
 
 namespace Farm.Transition
 {
-    public class TransitionManager : MonoSingleton<TransitionManager>
+    public class TransitionManager : MonoSingleton<TransitionManager>,ISaveable
     {
         [SceneName]
         public string startSceneName = string.Empty;
@@ -18,8 +18,8 @@ namespace Farm.Transition
         protected override void Awake()
         {
             base.Awake();
-          /*  Screen.SetResolution(1920, 1080, FullScreenMode.Windowed, 0);
-            SceneManager.LoadScene("UI", LoadSceneMode.Additive);*/
+            Screen.SetResolution(1920, 1080, FullScreenMode.Windowed, 0);
+            SceneManager.LoadScene("UI", LoadSceneMode.Additive);
         }
 
         private void OnEnable()
@@ -43,15 +43,14 @@ namespace Farm.Transition
 
         private void OnStartNewGameEvent(int obj)
         {
-            //StartCoroutine(LoadSaveDataScene(startSceneName));
             StartCoroutine(LoadSceneSetActive(startSceneName));
         }
 
 
         private void Start()
         {
-           /* ISaveable saveable = this;
-            saveable.RegisterSaveable();*/
+            ISaveable saveable = this;
+            saveable.RegisterSaveable();
 
             fadeCanvasGroup = FindObjectOfType<CanvasGroup>();
         }
@@ -123,12 +122,16 @@ namespace Farm.Transition
             isFade = false;
         }
 
-
+        /// <summary>
+        /// 加载场景(如果当前场景是最初的场景，那么就需要卸载当前的场景，异步加载目标场景)
+        /// </summary>
+        /// <param name="sceneName"></param>
+        /// <returns></returns>
         private IEnumerator LoadSaveDataScene(string sceneName)
         {
             yield return Fade(1f);
-
-            if (SceneManager.GetActiveScene().name != "PersistentScene")    //在游戏过程中 加载另外游戏进度
+            ///判断当前场景是不是最初的场景
+            if (SceneManager.GetActiveScene().name != "PersistentScene")    
             {
                 EventCenter.CallBeforeSceneUnloadEvent();
                 yield return SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene().buildIndex);

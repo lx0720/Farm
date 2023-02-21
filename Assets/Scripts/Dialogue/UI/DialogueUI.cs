@@ -52,7 +52,7 @@ public class DialogueUI : MonoBehaviour
                     faceLeft.gameObject.SetActive(true);
                     faceLeft.sprite = piece.faceImage;
                     nameLeft.text = piece.name;
-                }
+                } 
                 else
                 {
                     faceRight.gameObject.SetActive(true);

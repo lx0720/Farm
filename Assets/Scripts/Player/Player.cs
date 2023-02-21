@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Farm.Save;
 using UnityEngine;
-public class Player : MonoBehaviour
+public class Player : MonoBehaviour,ISaveable
 {
     private Rigidbody2D rb;
 
@@ -24,9 +24,6 @@ public class Player : MonoBehaviour
     public float lastY;
 
 
-/*    private int inputX;
-    private int inputY;*/
-
     public string GUID => GetComponent<DataGUID>().guid;
 
     private void Awake()
@@ -38,8 +35,8 @@ public class Player : MonoBehaviour
 
     private void Start()
     {
-       /* ISaveable saveable = this;
-        saveable.RegisterSaveable();*/
+        ISaveable saveable = this;
+        saveable.RegisterSaveable();
     }
 
     private void OnEnable()

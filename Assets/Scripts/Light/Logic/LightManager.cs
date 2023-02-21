@@ -33,8 +33,7 @@ public class LightManager : MonoBehaviour
         sceneLights = FindObjectsOfType<LightControl>();
 
         foreach (LightControl light in sceneLights)
-        {
-            //lightcontrol 改变灯光的方�?
+        {           
             light.ChangeLightShift(currentSeason, currentLightShift, timeDifference);
         }
     }
@@ -49,7 +48,6 @@ public class LightManager : MonoBehaviour
 
             foreach (LightControl light in sceneLights)
             {
-                //lightcontrol 改变灯光的方�?
                 light.ChangeLightShift(currentSeason, currentLightShift, timeDifference);
             }
         }

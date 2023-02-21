@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 namespace Farm.Inventory
 {
-    public class ItemManager : MonoBehaviour
+    public class ItemManager : MonoBehaviour,ISaveable
     {
         public Item itemPrefab;
         public Item bounceItemPrefab;
@@ -15,9 +15,9 @@ namespace Farm.Inventory
 
         public string GUID => GetComponent<DataGUID>().guid;
 
-        //记录场景Item
+        //�����е�����
         private Dictionary<string, List<SceneItem>> sceneItemDict = new Dictionary<string, List<SceneItem>>();
-        //记录场景家具
+        //�����еļҾ�
         private Dictionary<string, List<SceneFurniture>> sceneFurnitureDict = new Dictionary<string, List<SceneFurniture>>();
 
         private void OnEnable()
@@ -26,7 +26,7 @@ namespace Farm.Inventory
             EventCenter.DropItemEvent += OnDropItemEvent;
             EventCenter.BeforeSceneUnloadEvent += OnBeforeSceneUnloadEvent;
             EventCenter.AfterSceneLoadedEvent += OnAfterSceneLoadedEvent;
-            //建�?
+
             EventCenter.BuildFurnitureEvent += OnBuildFurnitureEvent;
             EventCenter.StartNewGameEvent += OnStartNewGameEvent;
         }
@@ -44,8 +44,8 @@ namespace Farm.Inventory
 
         private void Start()
         {
-           /* ISaveable saveable = this;
-            saveable.RegisterSaveable();*/
+            ISaveable saveable = this;
+            saveable.RegisterSaveable();
         }
 
         private void OnStartNewGameEvent(int obj)
@@ -102,7 +102,7 @@ namespace Farm.Inventory
 
 
         /// <summary>
-        /// 获得当前场景所有Item
+        /// �õ����еĳ�������
         /// </summary>
         private void GetAllSceneItems()
         {
@@ -121,10 +121,9 @@ namespace Farm.Inventory
 
             if (sceneItemDict.ContainsKey(SceneManager.GetActiveScene().name))
             {
-                //找到数据就更新item数据列表
                 sceneItemDict[SceneManager.GetActiveScene().name] = currentSceneItems;
             }
-            else    //如果是新场景
+            else    
             {
                 sceneItemDict.Add(SceneManager.GetActiveScene().name, currentSceneItems);
             }
@@ -132,7 +131,7 @@ namespace Farm.Inventory
 
 
         /// <summary>
-        /// 刷新重建当前场景物品
+        /// ���´��������е�����
         /// </summary>
         private void RecreateAllItems()
         {
@@ -142,7 +141,7 @@ namespace Farm.Inventory
             {
                 if (currentSceneItems != null)
                 {
-                    //清场
+                    //�ҵ����е�����
                     foreach (var item in FindObjectsOfType<Item>())
                     {
                         Destroy(item.gameObject);
@@ -159,7 +158,7 @@ namespace Farm.Inventory
 
 
         /// <summary>
-        /// 获得场景所有家�?
+        /// �õ����еļҾ�
         /// </summary>
         private void GetAllSceneFurniture()
         {
@@ -177,20 +176,19 @@ namespace Farm.Inventory
 
                 currentSceneFurniture.Add(sceneFurniture);
             }
-
+            //�ѽ���ļҾߴ浽�Ҿ��ֵ�
             if (sceneFurnitureDict.ContainsKey(SceneManager.GetActiveScene().name))
             {
-                //找到数据就更新item数据列表
                 sceneFurnitureDict[SceneManager.GetActiveScene().name] = currentSceneFurniture;
             }
-            else    //如果是新场景
+            else   
             {
                 sceneFurnitureDict.Add(SceneManager.GetActiveScene().name, currentSceneFurniture);
             }
         }
 
         /// <summary>
-        /// 重建当前场景家具
+        /// ���½���
         /// </summary>
         private void RebuildFurniture()
         {

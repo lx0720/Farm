@@ -4,7 +4,10 @@ using UnityEngine;
 
 public class MenuUI : MonoBehaviour
 {
-    public GameObject[] panels;
+    /// <summary>
+    /// ËùÓÐµÄpanel
+    /// </summary>
+    [SerializeField]private GameObject[] panels;
 
     public void SwitchPanel(int index)
     {
@@ -20,6 +23,5 @@ public class MenuUI : MonoBehaviour
     public void ExitGame()
     {
         Application.Quit();
-        Debug.Log("EXIT GAME");
     }
 }

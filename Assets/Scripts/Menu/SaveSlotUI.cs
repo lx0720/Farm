@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 public class SaveSlotUI : MonoBehaviour
 {
-    public Text dataTime, dataScene;
+    [SerializeField]private Text dataTime, dataScene;
     private Button currentButton;
     private DataSlot currentData;
 
@@ -31,8 +31,8 @@ public class SaveSlotUI : MonoBehaviour
         }
         else
         {
-            dataTime.text = "杩欎釜涓栫晫杩樻病寮�濮?";
-            dataScene.text = "姊﹁繕娌″紑濮?";
+            dataTime.text = "时间还没开始";
+            dataScene.text = "世界还未生成";
         }
     }
 
@@ -44,7 +44,6 @@ public class SaveSlotUI : MonoBehaviour
         }
         else
         {
-            Debug.Log("鏂版父鎴?");
             EventCenter.CallStartNewGameEvent(Index);
         }
     }

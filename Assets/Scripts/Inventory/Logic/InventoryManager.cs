@@ -4,7 +4,7 @@ using Farm.Save;
 using UnityEngine;
 namespace Farm.Inventory
 {
-    public class InventoryManager : MonoSingleton<InventoryManager>
+    public class InventoryManager : MonoSingleton<InventoryManager>,ISaveable
     {
         [Header("物品信息数据库")]
         public ItemDataList_SO itemDataList_SO;
@@ -48,8 +48,8 @@ namespace Farm.Inventory
 
         private void Start()
         {
-            /*ISaveable saveable = this;
-            saveable.RegisterSaveable();*/
+            ISaveable saveable = this;
+            saveable.RegisterSaveable();
             // EventCenter.CallUpdateInventoryUI(InventoryLocation.Player, playerBag.itemList);
         }
 

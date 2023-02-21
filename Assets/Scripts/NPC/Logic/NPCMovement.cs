@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Animator))]
-public class NPCMovement : MonoBehaviour
+public class NPCMovement : MonoBehaviour,ISaveable
 {
     public ScheduleDataList_SO scheduleData;
     private SortedSet<ScheduleDetails> scheduleSet;
@@ -55,7 +55,7 @@ public class NPCMovement : MonoBehaviour
 
     private TimeSpan GameTime => TimeManager.Instance.GameTime;
 
-    //public string GUID => GetComponent<DataGUID>().guid;
+    public string GUID => GetComponent<DataGUID>().guid;
     public void SetCurrentScene(string scene) { currentScene = scene; }
 
     private void Awake()
@@ -96,19 +96,19 @@ public class NPCMovement : MonoBehaviour
         EventCenter.StartNewGameEvent -= OnStartNewGameEvent;
     }
 
-/*
+
     private void Start()
     {
         ISaveable saveable = this;
         saveable.RegisterSaveable();
-    }*/
+    }
 
     private void Update()
     {
         if (sceneLoaded)
             SwitchAnimation();
 
-        //计时�?
+        //计时器
         animationBreakTime -= Time.deltaTime;
         canPlayStopAnimaiton = animationBreakTime <= 0;
     }
@@ -356,9 +356,9 @@ public class NPCMovement : MonoBehaviour
             else
                 gridMovementStepTime = new TimeSpan(0, 0, (int)(Settings.gridCellSize / normalSpeed / Settings.secondThreshold));
 
-            //累加获得下一步的时间�?
+            //累加获得下一步的时间
             currentGameTime = currentGameTime.Add(gridMovementStepTime);
-            //循环下一�?
+            //循环下一个步骤
             previousSetp = step;
         }
     }
@@ -375,7 +375,7 @@ public class NPCMovement : MonoBehaviour
     }
 
     /// <summary>
-    /// 网格坐标返回世界坐标中心�?
+    /// 网格坐标返回世界坐标中心
     /// </summary>
     /// <param name="gridPos"></param>
     /// <returns></returns>

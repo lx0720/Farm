@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace Farm.Save
 {
+    /// <summary>
+    /// 保存加载管理器
+    /// </summary>
     public class SaveLoadManager : MonoSingleton<SaveLoadManager>
     {
         private List<ISaveable> saveableList = new List<ISaveable>();
@@ -74,7 +77,10 @@ namespace Farm.Save
             }
         }
 
-
+        /// <summary>
+        /// 存储
+        /// </summary>
+        /// <param name="index">哪一个DataSlot</param>
         private void Save(int index)
         {
             DataSlot data = new DataSlot();
@@ -84,9 +90,9 @@ namespace Farm.Save
                 data.dataDict.Add(saveable.GUID, saveable.GenerateSaveData());
             }
             dataSlots[index] = data;
-
+            //路径
             var resultPath = jsonFolder + "data" + index + ".json";
-
+            //Formatting.Indented一行一行读取
             var jsonData = JsonConvert.SerializeObject(dataSlots[index], Formatting.Indented);
 
             if (!File.Exists(resultPath))
@@ -96,7 +102,10 @@ namespace Farm.Save
             Debug.Log("DATA" + index + "SAVED!");
             File.WriteAllText(resultPath, jsonData);
         }
-
+        /// <summary>
+        /// 读取
+        /// </summary>
+        /// <param name="index">DataSlot号数</param>
         public void Load(int index)
         {
             currentDataIndex = index;

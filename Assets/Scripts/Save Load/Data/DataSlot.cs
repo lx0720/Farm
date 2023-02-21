@@ -5,14 +5,16 @@ using UnityEngine;
 
 namespace Farm.Save
 {
-    public class DataSlot
+    /// <summary>
+    /// 数据存储slot，一个DataSlot代表一个存储进度
+    /// </summary>
+    public class DataSlot 
     {
-        /// <summary>
-        /// 进度条，String是GUID
-        /// </summary>
+         
         public Dictionary<string, GameSaveData> dataDict = new Dictionary<string, GameSaveData>();
 
-        #region 用来UI显示进度详情
+        #region Menu的slot显示
+        //保存游戏时间
         public string DataTime
         {
             get
@@ -27,7 +29,7 @@ namespace Farm.Save
                 else return string.Empty;
             }
         }
-
+        //保存游戏场景
         public string DataScene
         {
             get
