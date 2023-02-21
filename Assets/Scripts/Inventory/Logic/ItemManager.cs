@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 namespace Farm.Inventory
 {
-    public class ItemManager : MonoBehaviour, ISaveable
+    public class ItemManager : MonoBehaviour
     {
         public Item itemPrefab;
         public Item bounceItemPrefab;
@@ -44,8 +44,8 @@ namespace Farm.Inventory
 
         private void Start()
         {
-            ISaveable saveable = this;
-            saveable.RegisterSaveable();
+           /* ISaveable saveable = this;
+            saveable.RegisterSaveable();*/
         }
 
         private void OnStartNewGameEvent(int obj)
@@ -79,10 +79,10 @@ namespace Farm.Inventory
 
 
         /// <summary>
-        /// 鍦ㄦ寚瀹氬潗鏍囦綅缃敓鎴愮墿鍝?
+        /// 在Pos的位置生成物体
         /// </summary>
-        /// <param name="ID">鐗╁搧ID</param>
-        /// <param name="pos">涓栫晫鍧愭爣</param>
+        /// <param name="ID">物体的Id</param>
+        /// <param name="pos">生成的位置</param>
         private void OnInstantiateItemInScene(int ID, Vector3 pos)
         {
             var item = Instantiate(bounceItemPrefab, pos, Quaternion.identity, itemParent);

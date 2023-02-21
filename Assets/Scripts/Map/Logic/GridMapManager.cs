@@ -360,7 +360,7 @@ namespace Farm.Map
                 Destroy(crop.gameObject);
             }
 
-            DisplayMap(SceneManager.GetActiveScene().name);
+            DisplayMap(SceneManager.GetSceneAt(SceneManager.sceneCount-1).name);
         }
 
 

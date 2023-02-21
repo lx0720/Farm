@@ -20,6 +20,10 @@ public class Player : MonoBehaviour
     private float mouseY;
     private bool useTool;
 
+    public float lastX;
+    public float lastY;
+
+
 /*    private int inputX;
     private int inputY;*/
 
@@ -191,13 +195,17 @@ public class Player : MonoBehaviour
         foreach (var anim in animators)
         {
             anim.SetBool("IsMoving", isMoving);
-            anim.SetFloat("MouseX", mouseX);
-            anim.SetFloat("MouseY", mouseY);
-
             if (isMoving)
             {
                 anim.SetFloat("InputX", inputX);
                 anim.SetFloat("InputY", inputY);
+                lastX = inputX;
+                lastY = inputY;
+            }
+            else
+            {
+                anim.SetFloat("MouseX", lastX);
+                anim.SetFloat("MouseY", lastY);
             }
         }
     }

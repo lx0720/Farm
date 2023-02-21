@@ -173,7 +173,6 @@ public class CursorManager : MonoBehaviour
             //如果物体时蓝图，那么显示家具样子
             if (itemDetails.itemType == ItemType.Furniture)
             {
-                Debug.Log("家具");
                 buildImage.gameObject.SetActive(true);
                 buildImage.sprite = itemDetails.itemOnWorldSprite;
                 buildImage.SetNativeSize();

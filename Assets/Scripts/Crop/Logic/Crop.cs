@@ -22,12 +22,12 @@ public class Crop : MonoBehaviour
         if (requireActionCount == -1) return;
 
         anim = GetComponentInChildren<Animator>();
+        
 
         //收获次数
         if (harvestActionCount < requireActionCount)
         {
             harvestActionCount++;
-
             //如果当前收获的物体被收获时有动画则播放动画
             if (anim != null && cropDetails.hasAnimation)
             {
@@ -67,7 +67,7 @@ public class Crop : MonoBehaviour
 
     private IEnumerator HarvestAfterAnimation()
     {
-        while (!anim.GetCurrentAnimatorStateInfo(0).IsName("END"))
+        while (!anim.GetCurrentAnimatorStateInfo(0).IsName("End"))
         {
             yield return null;
         }
@@ -90,7 +90,7 @@ public class Crop : MonoBehaviour
     }
 
     /// <summary>
-    /// 生成庄稼在背包
+    /// 生成果实
     /// </summary>
     public void SpawnHarvestItems()
     {

@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 2761660421652638625}
   - component: {fileID: 2761660421652638630}
   - component: {fileID: 2761660421652638628}
-  - component: {fileID: 2761660421652638629}
+  - component: {fileID: 6432615821063544764}
   m_Layer: 0
   m_Name: Tree01_Bottom
   m_TagString: Tree
@@ -112,7 +112,7 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1.0873399, y: 0.52829516}
   m_EdgeRadius: 0
---- !u!114 &2761660421652638629
+--- !u!114 &6432615821063544764
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -121,7 +121,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 2761660421652638624}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9490da6269dcfd447a02d6fede070437, type: 3}
+  m_Script: {fileID: 11500000, guid: 816fc0d08121fd7439b2585d1ef6a6a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &2761660422469982132
@@ -136,6 +136,7 @@ GameObject:
   - component: {fileID: 2761660422469982138}
   - component: {fileID: 2761660422469982137}
   - component: {fileID: 2761660422469982136}
+  - component: {fileID: -5274918537557824656}
   m_Layer: 0
   m_Name: CanFellTree01
   m_TagString: Tree
@@ -226,6 +227,51 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 0.892596, y: 2.463827}
   m_EdgeRadius: 0
+--- !u!114 &-5274918537557824656
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2761660422469982132}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 052b38370afab294b81dc1e09e006e88, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cropDetails:
+    seedItemID: 0
+    growthDays: 
+    growthPrefabs: []
+    growthSprites: []
+    seasons: 
+    harvestToolItemID: 
+    requireActionCount: 
+    transferItemID: 0
+    producedItemID: 
+    producedMinAmount: 
+    producedMaxAmount: 
+    spawnRadius: {x: 0, y: 0}
+    daysToRegrow: 0
+    regrowTimes: 0
+    generateAtPlayerPosition: 0
+    hasAnimation: 0
+    hasParticalEffect: 0
+    effectType: 0
+    effectPos: {x: 0, y: 0, z: 0}
+    soundEffect: 0
+  tileDetails:
+    girdX: 0
+    gridY: 0
+    canDig: 0
+    canDropItem: 0
+    canPlaceFurniture: 0
+    isNPCObstacle: 0
+    daysSinceDug: -1
+    daysSinceWatered: -1
+    seedItemID: -1
+    growthDays: -1
+    daysSinceLastHarvest: -1
 --- !u!1 &2761660423355702751
 GameObject:
   m_ObjectHideFlags: 0
@@ -236,7 +282,8 @@ GameObject:
   m_Component:
   - component: {fileID: 2761660423355702748}
   - component: {fileID: 2761660423355702749}
-  - component: {fileID: 2761660423355702754}
+  - component: {fileID: 7975875182383781629}
+  - component: {fileID: 6321940795608526276}
   m_Layer: 0
   m_Name: Tree01_Top
   m_TagString: Tree
@@ -311,7 +358,7 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 1
---- !u!114 &2761660423355702754
+--- !u!114 &7975875182383781629
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -320,6 +367,26 @@ MonoBehaviour:
   m_GameObject: {fileID: 2761660423355702751}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9490da6269dcfd447a02d6fede070437, type: 3}
+  m_Script: {fileID: 11500000, guid: 816fc0d08121fd7439b2585d1ef6a6a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!95 &6321940795608526276
+Animator:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2761660423355702751}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 27ca1b20e0ed87f4bb737a84a27e3fef, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorControllerStateOnDisable: 0

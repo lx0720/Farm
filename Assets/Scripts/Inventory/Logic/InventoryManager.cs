@@ -142,10 +142,10 @@ namespace Farm.Inventory
         }
 
         /// <summary>
-        /// 娣诲姞鐗╁搧鍒癙layer鑳屽寘閲?
+        /// 通过Item来添加物体
         /// </summary>
         /// <param name="item"></param>
-        /// <param name="toDestory">鏄惁瑕侀攢姣佺墿鍝?</param>
+        /// <param name="toDestory">是否是添加物体</param>
         public void AddItem(Item item, bool toDestory)
         {
             var index = GetItemIndexInBag(item.itemID);
@@ -158,7 +158,7 @@ namespace Farm.Inventory
                 Destroy(item.gameObject);
             }
 
-            //鏇存柊UI
+            //刷新背包
             EventCenter.CallUpdateInventoryUI(InventoryLocation.Player, playerBag.itemList);
         }
 
