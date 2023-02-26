@@ -9,11 +9,11 @@ TagManager:
   - ItemParent
   - CanPickup
   - Tree
-  - LoadPosition
   - Dig
   - Water
   - CropParent
   - CursorCanvas
+  - MenuCanvas
   layers:
   - Default
   - TransparentFX

@@ -56,6 +56,7 @@ public class NPCMovement : MonoBehaviour,ISaveable
     private TimeSpan GameTime => TimeManager.Instance.GameTime;
 
     public string GUID => GetComponent<DataGUID>().guid;
+
     public void SetCurrentScene(string scene) { currentScene = scene; }
 
     private void Awake()

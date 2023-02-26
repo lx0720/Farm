@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
-    private GameObject menuCanvas;
+    [SerializeField]private GameObject menuCanvas;
     public GameObject menuPrefab;
 
     public Button settingsBtn;
@@ -16,7 +16,7 @@ public class UIManager : MonoBehaviour
     private void Awake()
     {
         settingsBtn.onClick.AddListener(TogglePausePanel);
-        volumeSlider.onValueChanged.AddListener(AudioManager.Instance.SetMasterVolume);
+        //volumeSlider.onValueChanged.AddListener(AudioManager.Instance.SetMasterVolume);
     }
 
     private void OnEnable()
@@ -32,7 +32,6 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
-        menuCanvas = GameObject.FindWithTag("MenuCanvas");
         Instantiate(menuPrefab, menuCanvas.transform);
     }
     private void OnAfterSceneLoadedEvent()

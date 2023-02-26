@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using Farm.Save;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+
 public class Player : MonoBehaviour,ISaveable
 {
     private Rigidbody2D rb;
@@ -210,6 +212,7 @@ public class Player : MonoBehaviour,ISaveable
     public GameSaveData GenerateSaveData()
     {
         GameSaveData saveData = new GameSaveData();
+        saveData.dataSceneName = SceneManager.GetActiveScene().name;
         saveData.characterPosDict = new Dictionary<string, SerializableVector3>();
         saveData.characterPosDict.Add(this.name, new SerializableVector3(transform.position));
 

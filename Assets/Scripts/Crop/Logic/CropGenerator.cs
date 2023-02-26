@@ -9,8 +9,8 @@ namespace Farm.CropPlant
     {
         private Grid currentGrid;
 
-        public int seedItemID;
-        public int growthDays;
+        [SerializeField]private int seedItemID;
+        [SerializeField]private int growthDays;
 
         private void Awake()
         {

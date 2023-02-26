@@ -113,7 +113,7 @@ namespace Farm.Save
             var resultPath = jsonFolder + "data" + index + ".json";
 
             var stringData = File.ReadAllText(resultPath);
-
+            ///∑¥–Ú¡–ªØ
             var jsonData = JsonConvert.DeserializeObject<DataSlot>(stringData);
 
             foreach (var saveable in saveableList)

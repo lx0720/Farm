@@ -50,12 +50,12 @@ namespace Farm.Inventory
         {
             ISaveable saveable = this;
             saveable.RegisterSaveable();
-            // EventCenter.CallUpdateInventoryUI(InventoryLocation.Player, playerBag.itemList);
+            EventCenter.CallUpdateInventoryUI(InventoryLocation.Player, playerBag.itemList);
         }
 
         private void OnStartNewGameEvent(int obj)
         {
-            //playerBag = Instantiate(playerBagTemp);
+            playerBag = Instantiate(playerBagTemp);
             PlayerMoney = Settings.playerStartMoney;
             boxDataDict.Clear();
             EventCenter.CallUpdateInventoryUI(InventoryLocation.Player, playerBag.itemList);
@@ -394,9 +394,10 @@ namespace Farm.Inventory
         public GameSaveData GenerateSaveData()
         {
             GameSaveData saveData = new GameSaveData();
-            saveData.playerMoney = this.PlayerMoney;
+            saveData.playerMoney = PlayerMoney;
 
             saveData.inventoryDict = new Dictionary<string, List<InventoryItem>>();
+
             saveData.inventoryDict.Add(playerBag.name, playerBag.itemList);
 
             foreach (var item in boxDataDict)
@@ -408,8 +409,10 @@ namespace Farm.Inventory
 
         public void RestoreData(GameSaveData saveData)
         {
-            this.PlayerMoney = saveData.playerMoney;
+            PlayerMoney = saveData.playerMoney;
+
             playerBag = Instantiate(playerBagTemp);
+
             playerBag.itemList = saveData.inventoryDict[playerBag.name];
 
             foreach (var item in saveData.inventoryDict)
