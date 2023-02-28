@@ -14,6 +14,7 @@ TagManager:
   - CropParent
   - CursorCanvas
   - MenuCanvas
+  - NPCPath
   layers:
   - Default
   - TransparentFX

@@ -292,7 +292,6 @@ public class NPCMovement : MonoBehaviour,ISaveable
         //不同场景
         else if (schedule.targetScene != currentScene)
         {
-            Debug.Log(schedule.targetScene);
             SceneRoute sceneRoute = NPCManager.Instance.GetSceneRoute(currentScene, schedule.targetScene);
             if (sceneRoute != null)
             {

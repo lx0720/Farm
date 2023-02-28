@@ -198,7 +198,7 @@ public class CursorManager : MonoBehaviour
         }
         ///获取Tile信息
         TileDetails currentTile = GridMapManager.Instance.GetTileDetailsOnMousePosition(mouseGridPos);
-
+        Debug.Log(currentTile.canDig);
         if (currentTile != null)
         {
             CropDetails currentCrop = CropManager.Instance.GetCropDetails(currentTile.seedItemID);

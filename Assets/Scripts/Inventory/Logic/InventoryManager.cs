@@ -210,10 +210,10 @@ namespace Farm.Inventory
         }
 
         /// <summary>
-        /// Player鑳屽寘鑼冨洿鍐呬氦鎹㈢墿鍝?
+        /// Player交换物体
         /// </summary>
-        /// <param name="fromIndex">璧峰搴忓彿</param>
-        /// <param name="targetIndex">鐩爣鏁版嵁搴忓彿</param>
+        /// <param name="fromIndex"></param>
+        /// <param name="targetIndex"></param>
         public void SwapItem(int fromIndex, int targetIndex)
         {
             InventoryItem currentItem = playerBag.itemList[fromIndex];
@@ -234,7 +234,7 @@ namespace Farm.Inventory
         }
 
         /// <summary>
-        /// 璺ㄨ儗鍖呬氦鎹㈡暟鎹?
+        /// 交换物体
         /// </summary>
         /// <param name="locationFrom"></param>
         /// <param name="fromIndex"></param>
@@ -244,25 +244,24 @@ namespace Farm.Inventory
         {
             var currentList = GetItemList(locationFrom);
             var targetList = GetItemList(locationTarget);
-
             InventoryItem currentItem = currentList[fromIndex];
 
             if (targetIndex < targetList.Count)
             {
                 InventoryItem targetItem = targetList[targetIndex];
 
-                if (targetItem.itemID != 0 && currentItem.itemID != targetItem.itemID)  //鏈変笉鐩稿悓鐨勪袱涓墿鍝?
+                if (targetItem.itemID != 0 && currentItem.itemID != targetItem.itemID)  
                 {
                     currentList[fromIndex] = targetItem;
                     targetList[targetIndex] = currentItem;
                 }
-                else if (currentItem.itemID == targetItem.itemID) //鐩稿悓鐨勪袱涓墿鍝?
+                else if (currentItem.itemID == targetItem.itemID) 
                 {
                     targetItem.itemAmount += currentItem.itemAmount;
                     targetList[targetIndex] = targetItem;
                     currentList[fromIndex] = new InventoryItem();
                 }
-                else    //鐩爣绌烘牸瀛?
+                else    
                 {
                     targetList[targetIndex] = currentItem;
                     currentList[fromIndex] = new InventoryItem();
@@ -273,7 +272,7 @@ namespace Farm.Inventory
         }
 
         /// <summary>
-        /// 鏍规嵁浣嶇疆杩斿洖鑳屽寘鏁版嵁鍒楄〃
+        /// 通过枚举得到所有物体
         /// </summary>
         /// <param name="location"></param>
         /// <returns></returns>
@@ -347,7 +346,7 @@ namespace Farm.Inventory
         }
 
         /// <summary>
-        /// 妫�鏌ュ缓閫犺祫婧愮墿鍝佸簱瀛?
+        /// 检查
         /// </summary>
         /// <param name="ID">鍥剧焊ID</param>
         /// <returns></returns>
@@ -368,7 +367,7 @@ namespace Farm.Inventory
         }
 
         /// <summary>
-        /// 鏌ユ壘绠卞瓙鏁版嵁
+        /// 得到Box的数据
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
@@ -380,7 +379,7 @@ namespace Farm.Inventory
         }
 
         /// <summary>
-        /// 鍔犲叆绠卞瓙鏁版嵁瀛楀吀
+        /// 添加箱子列表
         /// </summary>
         /// <param name="box"></param>
         public void AddBoxDataDict(Box box)

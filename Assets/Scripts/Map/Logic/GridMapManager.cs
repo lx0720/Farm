@@ -321,7 +321,6 @@ namespace Farm.Map
         private void SetWaterGround(TileDetails tile)
         {
             Vector3Int pos = new Vector3Int(tile.girdX, tile.gridY, 0);
-            Debug.Log(pos);
             if (waterTilemap != null)
                 waterTilemap.SetTile(pos, waterTile);
         }

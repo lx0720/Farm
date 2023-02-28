@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Farm.Map;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 namespace Farm.AStar
 {
@@ -13,6 +14,8 @@ namespace Farm.AStar
         private int gridHeight;
         private int originX;
         private int originY;
+
+
 
         private List<Node> openNodeList;    //当前选中Node周围的8个点
         private HashSet<Node> closedNodeList;   //所有被选中的点
@@ -68,7 +71,6 @@ namespace Farm.AStar
             }
             else
                 return false;
-
             //gridNodes的范围是从0,0开始所以需要减去原点坐标得到实际位置
             startNode = gridNodes.GetGridNode(startPos.x - originX, startPos.y - originY);
             targetNode = gridNodes.GetGridNode(endPos.x - originX, endPos.y - originY);

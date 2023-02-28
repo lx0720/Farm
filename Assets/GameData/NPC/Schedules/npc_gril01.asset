@@ -15,10 +15,28 @@ MonoBehaviour:
   scheduleList:
   - targetScene: 01.Field
     hour: 6
+    minute: 10
+    day: 0
+    priority: 0
+    season: 0
+    targetGridPosition: {x: -12, y: 8}
+    clipAtStop: {fileID: 7400000, guid: bf11250c50cd54e0088f71e3578c50ad, type: 2}
+    interactable: 1
+  - targetScene: 01.Field
+    hour: 6
+    minute: 30
+    day: 0
+    priority: 0
+    season: 0
+    targetGridPosition: {x: 14, y: 14}
+    clipAtStop: {fileID: 7400000, guid: bf11250c50cd54e0088f71e3578c50ad, type: 2}
+    interactable: 1
+  - targetScene: 02.Home
+    hour: 7
     minute: 0
     day: 0
     priority: 0
     season: 0
-    targetGridPosition: {x: -3, y: 7}
+    targetGridPosition: {x: 4, y: 6}
     clipAtStop: {fileID: 7400000, guid: bf11250c50cd54e0088f71e3578c50ad, type: 2}
     interactable: 1

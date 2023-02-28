@@ -122,13 +122,12 @@ namespace Farm.Inventory
 
                 var targetSlot = eventData.pointerCurrentRaycast.gameObject.GetComponent<SlotUI>();
                 int targetIndex = targetSlot.slotIndex;
-
-                //如果拖拽的目标slottype是Bag则交换
+/*                //如果拖拽的目标slottype是Bag则交换
                 if (slotType == SlotType.Bag && targetSlot.slotType == SlotType.Bag)
                 {
                     InventoryManager.Instance.SwapItem(slotIndex, targetIndex);
-                }
-                else if (slotType == SlotType.Shop && targetSlot.slotType == SlotType.Bag)  //买
+                }*/
+                if (slotType == SlotType.Shop && targetSlot.slotType == SlotType.Bag)  //买
                 {
                     EventCenter.CallShowTradeUI(itemDetails, false);
                 }
@@ -136,9 +135,9 @@ namespace Farm.Inventory
                 {
                     EventCenter.CallShowTradeUI(itemDetails, true);
                 }
-                else if (slotType != SlotType.Shop && targetSlot.slotType != SlotType.Shop && slotType != targetSlot.slotType)
+                else if (slotType != SlotType.Shop && targetSlot.slotType != SlotType.Shop)  //交换箱子中的数据
                 {
-                    //
+                    //交换背包和箱子中的数据
                     InventoryManager.Instance.SwapItem(Location, slotIndex, targetSlot.Location, targetSlot.slotIndex);
                 }
                 //清除所有的高亮显示
