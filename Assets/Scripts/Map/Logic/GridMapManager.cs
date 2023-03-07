@@ -113,7 +113,7 @@ namespace Farm.Map
         /// <summary>
         /// 初始化TileDetails
         /// </summary>
-        /// <param name="mapData">鍦板浘淇℃伅</param>
+        /// <param name="mapData">各场景地图</param>
         private void InitTileDetailsDict(MapData_SO mapData)
         {
             foreach (TileProperty tileProperty in mapData.tileProperties)
@@ -124,7 +124,6 @@ namespace Farm.Map
                     gridY = tileProperty.tileCoordinate.y
                 };
 
-                //Key
                 string key = tileDetails.girdX + "x" + tileDetails.gridY + "y" + mapData.sceneName;
 
                 if (GetTileDetails(key) != null)
@@ -165,6 +164,8 @@ namespace Farm.Map
         {
             if (tileDetailsDict.ContainsKey(key))
             {
+                Debug.Log("包含这个Key，输出此details :");
+                Debug.Log(tileDetailsDict[key].canDig);
                 return tileDetailsDict[key];
             }
             return null;
@@ -178,6 +179,7 @@ namespace Farm.Map
         public TileDetails GetTileDetailsOnMousePosition(Vector3Int mouseGridPos)
         {
             string key = mouseGridPos.x + "x" + mouseGridPos.y + "y" + SceneManager.GetActiveScene().name;
+            Debug.Log("获取到的Key" + key);
             return GetTileDetails(key);
         }
 

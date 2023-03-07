@@ -180,7 +180,7 @@ public class CursorManager : MonoBehaviour
         }
     }
 
-
+    //检查当前的鼠标是否可用
     private void CheckCursorValid()
     {
         mouseWorldPos = mainCamera.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, -mainCamera.transform.position.z));
@@ -197,8 +197,10 @@ public class CursorManager : MonoBehaviour
             return;
         }
         ///获取Tile信息
+        //Debug.Log("鼠标的CellPos"+ mouseGridPos);
         TileDetails currentTile = GridMapManager.Instance.GetTileDetailsOnMousePosition(mouseGridPos);
-        Debug.Log(currentTile.canDig);
+
+        Debug.Log(currentTile);
         if (currentTile != null)
         {
             CropDetails currentCrop = CropManager.Instance.GetCropDetails(currentTile.seedItemID);

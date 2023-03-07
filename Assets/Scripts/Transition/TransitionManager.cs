@@ -129,13 +129,10 @@ namespace Farm.Transition
         /// <returns></returns>
         private IEnumerator LoadSaveDataScene(string sceneName)
         {
-            Debug.Log(SceneManager.GetActiveScene().name);
             yield return Fade(1f);
             ///判断当前场景是不是最初的场景
-                       //Debug.Log(SceneManager.GetActiveScene().name);
             if (SceneManager.GetActiveScene().name != "PersistentScene")    
             {
-                Debug.Log(SceneManager.GetActiveScene().name);
                 EventCenter.CallBeforeSceneUnloadEvent();
                 yield return SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene().buildIndex);
             }

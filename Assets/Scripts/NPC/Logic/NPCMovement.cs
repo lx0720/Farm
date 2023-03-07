@@ -45,6 +45,7 @@ public class NPCMovement : MonoBehaviour,ISaveable
     private bool npcMove;
     private bool sceneLoaded;
     public bool isFirstLoad;
+    public bool canInteract { private set; get; }
     private Season currentSeason;
     //动画计时器
     private float animationBreakTime;
@@ -429,6 +430,7 @@ public class NPCMovement : MonoBehaviour,ISaveable
     {
         spriteRenderer.enabled = true;
         coll.enabled = true;
+        canInteract = true;
 
         transform.GetChild(0).gameObject.SetActive(true);
     }
@@ -437,7 +439,7 @@ public class NPCMovement : MonoBehaviour,ISaveable
     {
         spriteRenderer.enabled = false;
         coll.enabled = false;
-
+        canInteract = false;
         transform.GetChild(0).gameObject.SetActive(false);
     }
     #endregion

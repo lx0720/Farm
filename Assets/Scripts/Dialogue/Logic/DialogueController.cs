@@ -44,11 +44,14 @@ namespace Farm.Dialogue
         {
             uiSign.SetActive(canTalk);
 
-            if (canTalk & Input.GetKeyDown(KeyCode.Space) && !isTalking)
+            if (canTalk & Input.GetKeyDown(KeyCode.Space) && !isTalking && npc.canInteract)
             {
                 StartCoroutine(DailogueRoutine());
             }
         }
+
+
+
 
         /// <summary>
         /// 构建对话堆栈
