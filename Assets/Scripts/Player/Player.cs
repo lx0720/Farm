@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using Farm.Save;
+using Farm.Tool;
+using Farm.Input;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -11,19 +13,27 @@ public class Player : MonoBehaviour,ISaveable
     [SerializeField]private float speed;
     private float inputX;
     private float inputY;
-    private Vector2 movementInput;
 
-    private Animator[] animators;
-    private bool isMoving;
+    private Animator[] allAnimators;
+    private bool movingState;
     public bool inputDisable;
 
-    //使用工具动画
-    private float mouseX;
-    private float mouseY;
+    private float mouseInputX;
+    private float mouseInputY;
+
+    private Vector2 moveInput;
+    private bool leftShift;
     private bool useTool;
 
-    public float lastX;
-    public float lastY;
+    public float moveEndX;
+    public float moveEndY;
+
+    //StringToHash
+    private int moveX;
+    private int moveY;
+    private int mouseX;
+    private int mouseY;
+    private int moveBool;
 
 
     public string GUID => GetComponent<DataGUID>().guid;
@@ -31,8 +41,7 @@ public class Player : MonoBehaviour,ISaveable
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
-        animators = GetComponentsInChildren<Animator>();
-        inputDisable = true;
+        allAnimators = GetComponentsInChildren<Animator>();
     }
 
     private void Start()
@@ -49,7 +58,7 @@ public class Player : MonoBehaviour,ISaveable
         EventCenter.MouseClickedEvent += OnMouseClickedEvent;
         EventCenter.UpdateGameStateEvent += OnUpdateGameStateEvent;
         EventCenter.StartNewGameEvent += OnStartNewGameEvent;
-        EventCenter.EndGameEvent += OnEndGameEvent;
+
     }
 
     private void OnDisable()
@@ -60,33 +69,35 @@ public class Player : MonoBehaviour,ISaveable
         EventCenter.MouseClickedEvent -= OnMouseClickedEvent;
         EventCenter.UpdateGameStateEvent -= OnUpdateGameStateEvent;
         EventCenter.StartNewGameEvent -= OnStartNewGameEvent;
-        EventCenter.EndGameEvent -= OnEndGameEvent;
     }
 
     private void Update()
     {
-        if (!inputDisable)
-            PlayerInput();
+        if (InputManager.Instance.GetCanInput())
+            GetPlayerInput();
         else
-            isMoving = false;
-        SwitchAnimation();
+            movingState = false;
+        SwitchPlayerAnimation();
     }
 
     private void FixedUpdate()
     {
-        if (!inputDisable)
-            Movement();
+        if (InputManager.Instance.GetCanInput())
+            PlayerMovement();
+    }
+
+    public void StringToHash(string animatorField)
+    {
+        moveX = Animator.StringToHash("InputX");
+        moveY = Animator.StringToHash("InputY");
+        mouseX = Animator.StringToHash("MouseY");
+        mouseY = Animator.StringToHash("MouseY");
+        moveBool = Animator.StringToHash("IsMoving");
     }
 
     private void OnStartNewGameEvent(int obj)
     {
-        inputDisable = false;
-        transform.position = Settings.playerStartPos;
-    }
-
-    private void OnEndGameEvent()
-    {
-        inputDisable = true;
+        transform.position = Settings.GameStartPlayerPos;
     }
 
     private void OnUpdateGameStateEvent(GameState gameState)
@@ -102,17 +113,15 @@ public class Player : MonoBehaviour,ISaveable
         }
     }
 
-
     private void OnMouseClickedEvent(Vector3 mouseWorldPos, ItemDetails itemDetails)
     {
         if (useTool)
             return;
 
-        //执行动画
         if (itemDetails.itemType != ItemType.Seed && itemDetails.itemType != ItemType.Commodity && itemDetails.itemType != ItemType.Furniture)
         {
-            mouseX = mouseWorldPos.x - transform.position.x;
-            mouseY = mouseWorldPos.y - (transform.position.y + 0.85f);
+            mouseInputX = mouseWorldPos.x - transform.position.x;
+            mouseInputY = mouseWorldPos.y - (transform.position.y + 0.85f);
 
             if (Mathf.Abs(mouseX) > Mathf.Abs(mouseY))
                 mouseY = 0;
@@ -130,22 +139,22 @@ public class Player : MonoBehaviour,ISaveable
     private IEnumerator UseToolRoutine(Vector3 mouseWorldPos, ItemDetails itemDetails)
     {
         useTool = true;
-        inputDisable = true;
         yield return null;
-        foreach (var anim in animators)
+        foreach (Animator anim in allAnimators)
         {
             anim.SetTrigger("UseTool");
-            //人物的面朝方向
+
             anim.SetFloat("InputX", mouseX);
             anim.SetFloat("InputY", mouseY);
         }
         yield return new WaitForSeconds(0.45f);
         EventCenter.CallExecuteActionAfterAnimation(mouseWorldPos, itemDetails);
         yield return new WaitForSeconds(0.25f);
-        //等待动画结束
+
         useTool = false;
         inputDisable = false;
     }
+
     private void OnMoveToPosition(Vector3 targetPosition)
     {
         transform.position = targetPosition;
@@ -161,50 +170,40 @@ public class Player : MonoBehaviour,ISaveable
         inputDisable = true;
     }
 
-
-    private void PlayerInput()
+    //���봦��
+    private void GetPlayerInput()
     {
-        inputX = Input.GetAxisRaw("Horizontal");
-        inputY = Input.GetAxisRaw("Vertical");
-
-        if (inputX != 0 && inputY != 0)
+        moveInput = InputManager.Instance.GetMovement();
+        leftShift = InputManager.Instance.GetLeftShift();
+        if (moveInput.x != 0 && moveInput.y != 0)
         {
-            inputX = inputX * 0.6f;
-            inputY = inputY * 0.6f;
+            moveInput *= 0.6f;
         }
-
-        //走路状态速度
-        if (Input.GetKey(KeyCode.LeftShift))
-        {
-            inputX = inputX * 0.5f;
-            inputY = inputY * 0.5f;
-        }
-        movementInput = new Vector2(inputX, inputY);
-
-        isMoving = movementInput != Vector2.zero;
+        moveInput = leftShift == true ? moveInput * 0.5f : moveInput;
+        movingState = moveInput != Vector2.zero;
     }
-
-    private void Movement()
+    //�ƶ�
+    private void PlayerMovement()
     {
-        rb.MovePosition(rb.position + movementInput * speed * Time.deltaTime);
+        rb.MovePosition(rb.position + moveInput * speed * Time.deltaTime);
     }
-
-    private void SwitchAnimation()
+    //�����ı�
+    private void SwitchPlayerAnimation()
     {
-        foreach (var anim in animators)
+        foreach (Animator anim in allAnimators)
         {
-            anim.SetBool("IsMoving", isMoving);
-            if (isMoving)
+            anim.SetBool(moveBool,movingState);
+            if (movingState)
             {
-                anim.SetFloat("InputX", inputX);
-                anim.SetFloat("InputY", inputY);
-                lastX = inputX;
-                lastY = inputY;
+                anim.SetFloat(moveX,moveInput.x);
+                anim.SetFloat(moveY,moveInput.y);
+                moveEndX = moveInput.x;
+                moveEndY = moveInput.y;
             }
             else
             {
-                anim.SetFloat("MouseX", lastX);
-                anim.SetFloat("MouseY", lastY);
+                anim.SetFloat(mouseX, moveEndX);
+                anim.SetFloat(mouseY, moveEndY);
             }
         }
     }
@@ -212,7 +211,7 @@ public class Player : MonoBehaviour,ISaveable
     public GameSaveData GenerateSaveData()
     {
         GameSaveData saveData = new GameSaveData();
-        saveData.dataSceneName = SceneManager.GetActiveScene().name;
+        saveData.dataSceneName = GameTools.StringToEnum(SceneManager.GetActiveScene().name);
         saveData.characterPosDict = new Dictionary<string, SerializableVector3>();
         saveData.characterPosDict.Add(this.name, new SerializableVector3(transform.position));
 

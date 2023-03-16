@@ -62,7 +62,6 @@ namespace Farm.CropPlant
             int currentStage = 0;
             int dayCounter = cropDetails.TotalGrowthDays;
 
-            //判断阶段的时间
             for (int i = growthStages - 1; i >= 0; i--)
             {
                 if (tileDetails.growthDays >= dayCounter)
@@ -73,7 +72,6 @@ namespace Farm.CropPlant
                 dayCounter -= cropDetails.growthDays[i];
             }
 
-            //生成Go
             GameObject cropPrefab = cropDetails.growthPrefabs[currentStage];
             Sprite cropSprite = cropDetails.growthSprites[currentStage];
 

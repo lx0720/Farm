@@ -1,3 +1,4 @@
+using Farm.Input;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -44,7 +45,7 @@ namespace Farm.Dialogue
         {
             uiSign.SetActive(canTalk);
 
-            if (canTalk & Input.GetKeyDown(KeyCode.Space) && !isTalking && npc.canInteract)
+            if (canTalk & InputManager.Instance.GetSpaceTalk() && !isTalking && npc.canInteract)
             {
                 StartCoroutine(DailogueRoutine());
             }
@@ -71,7 +72,6 @@ namespace Farm.Dialogue
             isTalking = true;
             if (dailogueStack.TryPop(out DialoguePiece result))
             {
-                //传到UI显示对话
                 EventCenter.CallShowDialogueEvent(result);
                 EventCenter.CallUpdateGameStateEvent(GameState.Pause);
                 yield return new WaitUntil(() => result.isDone);

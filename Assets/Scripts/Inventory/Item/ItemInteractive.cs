@@ -12,13 +12,11 @@ public class ItemInteractive : MonoBehaviour
         if (!isAnimating)
         {
             if (other.transform.position.x < transform.position.x)
-            {
-                //对方在左�? 向右摇晃
+            {          
                 StartCoroutine(RotateRight());
             }
             else
             {
-                //对方在右�? 向左摇晃
                 StartCoroutine(RotateLeft());
             }
             EventCenter.CallPlaySoundEvent(SoundName.Rustle);
@@ -30,13 +28,11 @@ public class ItemInteractive : MonoBehaviour
         if (!isAnimating)
         {
             if (other.transform.position.x > transform.position.x)
-            {
-                //对方在左�? 向右摇晃
+            {       
                 StartCoroutine(RotateRight());
             }
             else
             {
-                //对方在右�? 向左摇晃
                 StartCoroutine(RotateLeft());
             }
             EventCenter.CallPlaySoundEvent(SoundName.Rustle);

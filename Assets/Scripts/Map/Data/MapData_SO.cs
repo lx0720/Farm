@@ -5,7 +5,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName ="MapData_SO",menuName = "Map/MapData")]
 public class MapData_SO : ScriptableObject
 {
-    [SceneName]public string sceneName;
+    public GameScene gameScene;
     public int gridWidth;
     public int gridHeight;
     public int originX;

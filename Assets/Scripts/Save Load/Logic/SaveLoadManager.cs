@@ -39,10 +39,10 @@ namespace Farm.Save
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.I))
+        /*    if (Input.GetKeyDown(KeyCode.I))
                 Save(currentDataIndex);
             if (Input.GetKeyDown(KeyCode.O))
-                Load(currentDataIndex);
+                Load(currentDataIndex);*/
         }
 
 
@@ -90,9 +90,9 @@ namespace Farm.Save
                 data.dataDict.Add(saveable.GUID, saveable.GenerateSaveData());
             }
             dataSlots[index] = data;
-            //路径
+
             var resultPath = jsonFolder + "data" + index + ".json";
-            //Formatting.Indented一行一行读取
+
             var jsonData = JsonConvert.SerializeObject(dataSlots[index], Formatting.Indented);
 
             if (!File.Exists(resultPath))
@@ -100,6 +100,7 @@ namespace Farm.Save
                 Directory.CreateDirectory(jsonFolder);
             }
             Debug.Log("DATA" + index + "SAVED!");
+
             File.WriteAllText(resultPath, jsonData);
         }
         /// <summary>

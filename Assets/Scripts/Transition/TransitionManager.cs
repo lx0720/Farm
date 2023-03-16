@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Farm.Tool;
 using Farm.Save;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -127,17 +128,16 @@ namespace Farm.Transition
         /// </summary>
         /// <param name="sceneName"></param>
         /// <returns></returns>
-        private IEnumerator LoadSaveDataScene(string sceneName)
+        private IEnumerator LoadSaveDataScene(GameScene targetScene)
         {
             yield return Fade(1f);
-            ///判断当前场景是不是最初的场景
-            if (SceneManager.GetActiveScene().name != "PersistentScene")    
+            if (SceneManager.GetActiveScene().name != "InitialScene")    
             {
                 EventCenter.CallBeforeSceneUnloadEvent();
                 yield return SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene().buildIndex);
             }
 
-            yield return LoadSceneSetActive(sceneName);
+            yield return LoadSceneSetActive(targetScene.ToString());
             EventCenter.CallAfterSceneLoadedEvent();
             yield return Fade(0);
         }
@@ -156,14 +156,13 @@ namespace Farm.Transition
         public GameSaveData GenerateSaveData()
         {
             GameSaveData saveData = new GameSaveData();
-            saveData.dataSceneName = SceneManager.GetActiveScene().name;
+            saveData.dataSceneName = GameTools.StringToEnum(SceneManager.GetActiveScene().name);
 
             return saveData;
         }
 
         public void RestoreData(GameSaveData saveData)
         {
-            //加载游戏进度场景
             StartCoroutine(LoadSaveDataScene(saveData.dataSceneName));
         }
     }

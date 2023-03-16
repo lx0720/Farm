@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Farm.Map;
 using UnityEngine;
-using UnityEngine.Tilemaps;
 
 namespace Farm.AStar
 {
@@ -17,30 +16,28 @@ namespace Farm.AStar
 
 
 
-        private List<Node> openNodeList;    //当前选中Node周围的8个点
-        private HashSet<Node> closedNodeList;   //所有被选中的点
+        private List<Node> openNodeList;   
+        private HashSet<Node> closedNodeList;  
 
-        private bool pathFound;
+        private bool hasShorterPath;
 
 
         /// <summary>
-        /// 构建路径更新Stack的每一步
+        /// 构建最短路径
         /// </summary>
         /// <param name="sceneName"></param>
         /// <param name="startPos"></param>
         /// <param name="endPos"></param>
         /// <param name="npcMovementStack"></param>
-        public void BuildPath(string sceneName, Vector2Int startPos, Vector2Int endPos, Stack<MovementStep> npcMovementStack)
+        public void BuildShortestPath(GameScene targetScene, Vector2Int startPos, Vector2Int endPos, Stack<MovementStep> npcMovementStack)
         {
-            pathFound = false;
+            hasShorterPath = false;
 
-            if (GenerateGridNodes(sceneName, startPos, endPos))
+            if (GenerateGridNodes(targetScene, startPos, endPos))
             {
-                //查找最短路径
                 if (FindShortestPath())
                 {
-                    //构建NPC移动路径
-                    UpdatePathOnMovementStepStack(sceneName, npcMovementStack);
+                    UpdatePathOnMovementStepStack(targetScene, npcMovementStack);
                 }
             }
         }
@@ -54,24 +51,21 @@ namespace Farm.AStar
         /// <param name="startPos">起点</param>
         /// <param name="endPos">终点</param>
         /// <returns></returns>
-        private bool GenerateGridNodes(string sceneName, Vector2Int startPos, Vector2Int endPos)
+        private bool GenerateGridNodes(GameScene targetScene, Vector2Int startPos, Vector2Int endPos)
         {
-            if (GridMapManager.Instance.GetGridDimensions(sceneName, out Vector2Int gridDimensions, out Vector2Int gridOrigin))
+            if (GridMapManager.Instance.GetGridSize(targetScene, out Vector2Int gridDimensions, out Vector2Int gridOrigin))
             {
-                //根据瓦片地图范围构建网格移动节点范围数组
                 gridNodes = new GridNodes(gridDimensions.x, gridDimensions.y);
                 gridWidth = gridDimensions.x;
                 gridHeight = gridDimensions.y;
                 originX = gridOrigin.x;
                 originY = gridOrigin.y;
 
-                openNodeList = new List<Node>();
-
-                closedNodeList = new HashSet<Node>();
+                openNodeList ??= new List<Node>();
+                closedNodeList ??= new HashSet<Node>();
             }
             else
                 return false;
-            //gridNodes的范围是从0,0开始所以需要减去原点坐标得到实际位置
             startNode = gridNodes.GetGridNode(startPos.x - originX, startPos.y - originY);
             targetNode = gridNodes.GetGridNode(endPos.x - originX, endPos.y - originY);
 
@@ -80,14 +74,13 @@ namespace Farm.AStar
                 for (int y = 0; y < gridHeight; y++)
                 {
                     Vector3Int tilePos = new Vector3Int(x + originX, y + originY, 0);
-                    var key = tilePos.x + "x" + tilePos.y + "y" + sceneName;
+                    var key = tilePos.x + "x" + tilePos.y + "y" + targetScene.ToString();
 
                     TileDetails tile = GridMapManager.Instance.GetTileDetails(key);
 
                     if (tile != null)
                     {
                         Node node = gridNodes.GetGridNode(x, y);
-
 
                         if (tile.isNPCObstacle)
                         {
@@ -106,11 +99,9 @@ namespace Farm.AStar
         /// <returns></returns>
         private bool FindShortestPath()
         {
-            //添加起点
             openNodeList.Add(startNode);
-
             while (openNodeList.Count > 0)
-            {//节点排序，Node内涵比较函数
+            {
                 openNodeList.Sort();
 
                 Node closeNode = openNodeList[0];
@@ -120,18 +111,15 @@ namespace Farm.AStar
 
                 if (closeNode == targetNode)
                 {
-                    pathFound = true;
+                    hasShorterPath = true;
                     break;
                 }
-
-                //计算周围8个Node补充到OpenList
                 EvaluateNeighbourNodes(closeNode);
             }
 
-            return pathFound;
+            return hasShorterPath;
         }
-
-
+     
         /// <summary>
         /// 评估周围8个点，并生成对应消耗值
         /// </summary>
@@ -156,7 +144,6 @@ namespace Farm.AStar
                         {
                             validNeighbourNode.SetGCost(currentNode.GetGCost() + GetDistance(currentNode, validNeighbourNode));
                             validNeighbourNode.SetHCost(GetManhattanDistance(validNeighbourNode,targetNode));
-                            //链接父节点
                             validNeighbourNode.SetParentNode(currentNode);
                             openNodeList.Add(validNeighbourNode);
                         }
@@ -218,16 +205,15 @@ namespace Farm.AStar
         /// </summary>
         /// <param name="sceneName"></param>
         /// <param name="npcMovementStep"></param>
-        private void UpdatePathOnMovementStepStack(string sceneName, Stack<MovementStep> npcMovementStep)
+        private void UpdatePathOnMovementStepStack(GameScene targetScene, Stack<MovementStep> npcMovementStep)
         {
             Node nextNode = targetNode;
 
             while (nextNode != null)
             {
                 MovementStep newStep = new MovementStep();
-                newStep.sceneName = sceneName;
+                newStep.sceneName = targetScene;
                 newStep.gridCoordinate = new Vector2Int(nextNode.GetGridPosition().x + originX, nextNode.GetGridPosition().y + originY);
-                //压入堆栈
                 npcMovementStep.Push(newStep);
                 nextNode = nextNode.GetParentNode();
             }

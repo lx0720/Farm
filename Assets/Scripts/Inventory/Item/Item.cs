@@ -6,41 +6,46 @@ namespace Farm.Inventory
 {
     public class Item : MonoBehaviour
     {
-        public int itemID;
-
+        private int itemId;
         private SpriteRenderer spriteRenderer;
-        private BoxCollider2D coll;
-        public ItemDetails itemDetails;
+        private BoxCollider2D boxCollider2D;
+        private ItemDetails itemDetails;
 
         private void Awake()
         {
             spriteRenderer = GetComponentInChildren<SpriteRenderer>();
-            coll = GetComponent<BoxCollider2D>();
+            boxCollider2D = GetComponent<BoxCollider2D>();
         }
 
         private void Start()
         {
-            if (itemID != 0)
+            if (itemId != 0)
             {
-                Init(itemID);
+                ItemInit(itemId);
             }
         }
 
-        public void Init(int ID)
-        {
-            itemID = ID;
+        #region SetsAndGets
 
-            //Inventory获得当前数据
-            itemDetails = InventoryManager.Instance.GetItemDetails(itemID);
+        public void SetItemId(int id) { itemId = id; }
+        public int GetItemId() => itemId;
+        public ItemDetails GetItemDetails() => itemDetails;
+
+        #endregion
+
+        public void ItemInit(int id)
+        {
+            itemId = id;
+
+            itemDetails = InventoryManager.Instance.GetItemDetails(itemId);
 
             if (itemDetails != null)
             {
                 spriteRenderer.sprite = itemDetails.itemOnWorldSprite != null ? itemDetails.itemOnWorldSprite : itemDetails.itemIcon;
 
-                //修改碰撞体尺寸
                 Vector2 newSize = new Vector2(spriteRenderer.sprite.bounds.size.x, spriteRenderer.sprite.bounds.size.y);
-                coll.size = newSize;
-                coll.offset = new Vector2(0, spriteRenderer.sprite.bounds.center.y);
+                boxCollider2D.size = newSize;
+                boxCollider2D.offset = new Vector2(0, spriteRenderer.sprite.bounds.center.y);
             }
 
             if (itemDetails.itemType == ItemType.ReapableScenery)

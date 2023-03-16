@@ -99,8 +99,8 @@ public class TileDetails
 [System.Serializable]
 public class NPCPosition
 {
-    public Transform npc;
-    [SceneName]public string startScene;
+    public Transform npcTransform;
+    public GameScene initialScene;
     public Vector3 position;
 }
 
@@ -108,15 +108,15 @@ public class NPCPosition
 [System.Serializable]
 public class SceneRoute
 {
-    [SceneName]public string fromSceneName;
-    [SceneName]public string gotoSceneName;
+    public GameScene fromSceneName;
+    public GameScene gotoSceneName;
     public List<ScenePath> scenePathList;
 }
 
 [System.Serializable]
 public class ScenePath
 {
-    [SceneName]public string sceneName;
+    public GameScene sceneName;
     public Vector2Int fromGridCell;
     public Vector2Int gotoGridCell;
 }

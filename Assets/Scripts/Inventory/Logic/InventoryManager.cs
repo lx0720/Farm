@@ -146,19 +146,14 @@ namespace Farm.Inventory
         /// </summary>
         /// <param name="item"></param>
         /// <param name="toDestory">是否是添加物体</param>
-        public void AddItem(Item item, bool toDestory)
+        public void AddItemInInventory(Item item, bool toDestory)
         {
-            var index = GetItemIndexInBag(item.itemID);
-
-            AddItemAtIndex(item.itemID, index, 1);
-
-            Debug.Log(GetItemDetails(item.itemID).itemID + "Name: " + GetItemDetails(item.itemID).itemName);
+            var index = GetItemIndexInBag(item.GetItemId());
+            AddItemAtIndex(item.GetItemId(), index, 1);
             if (toDestory)
             {
                 Destroy(item.gameObject);
             }
-
-            //刷新背包
             EventCenter.CallUpdateInventoryUI(InventoryLocation.Player, playerBag.itemList);
         }
 

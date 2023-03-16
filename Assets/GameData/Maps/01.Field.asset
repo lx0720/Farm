@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0db65c05111fd17458d8424953c9b9eb, type: 3}
   m_Name: 01.Field
   m_EditorClassIdentifier: 
-  sceneName: 01.Field
+  gameScene: 3
   gridWidth: 59
   gridHeight: 35
   originX: -25

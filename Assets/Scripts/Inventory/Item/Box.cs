@@ -1,3 +1,4 @@
+using Farm.Input;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -51,7 +52,7 @@ namespace Farm.Inventory
 
         private void Update()
         {
-            if (!isOpen && canOpen && Input.GetMouseButtonDown(1))
+            if (!isOpen && canOpen && InputManager.Instance.GetMouseRight())
             {
                 //打开箱子
                 EventCenter.CallBaseBagOpenEvent(SlotType.Box, boxBagData);
@@ -65,7 +66,7 @@ namespace Farm.Inventory
                 isOpen = false;
             }
 
-            if (isOpen && Input.GetKeyDown(KeyCode.Escape))
+            if (isOpen && InputManager.Instance.GetEscBack())
             {
                 //关闭箱子
                 EventCenter.CallBaseBagCloseEvent(SlotType.Box, boxBagData);

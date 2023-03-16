@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Farm.CropPlant;
 using Farm.Save;
+using Farm.Tool;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
@@ -21,7 +22,7 @@ namespace Farm.Map
 
         private Dictionary<string, TileDetails> tileDetailsDict = new Dictionary<string, TileDetails>();
 
-        private Dictionary<string, bool> firstLoadDict = new Dictionary<string, bool>();
+        private Dictionary<GameScene, bool> firstLoadDict = new Dictionary<GameScene, bool>();
 
         private List<ReapItem> itemsInRadius;
 
@@ -54,7 +55,7 @@ namespace Farm.Map
 
             foreach (var mapData in mapDataList)
             {
-                firstLoadDict.Add(mapData.sceneName, true);
+                firstLoadDict.Add(mapData.gameScene, true);
                 InitTileDetailsDict(mapData);
             }
         }
@@ -123,8 +124,7 @@ namespace Farm.Map
                     girdX = tileProperty.tileCoordinate.x,
                     gridY = tileProperty.tileCoordinate.y
                 };
-
-                string key = tileDetails.girdX + "x" + tileDetails.gridY + "y" + mapData.sceneName;
+                string key = KeyHelper.Instance.GetKey(tileDetails.girdX, tileDetails.gridY, mapData.gameScene);
 
                 if (GetTileDetails(key) != null)
                 {
@@ -164,11 +164,14 @@ namespace Farm.Map
         {
             if (tileDetailsDict.ContainsKey(key))
             {
-                Debug.Log("包含这个Key，输出此details :");
-                Debug.Log(tileDetailsDict[key].canDig);
+                //Debug.Log("字典存在");
                 return tileDetailsDict[key];
             }
-            return null;
+            else
+            {
+                //Debug.Log("没找到屋头");
+                return null;
+            }
         }
 
         /// <summary>
@@ -178,8 +181,9 @@ namespace Farm.Map
         /// <returns></returns>
         public TileDetails GetTileDetailsOnMousePosition(Vector3Int mouseGridPos)
         {
-            string key = mouseGridPos.x + "x" + mouseGridPos.y + "y" + SceneManager.GetActiveScene().name;
-            Debug.Log("获取到的Key" + key);
+            string key = KeyHelper.Instance.GetKey(mouseGridPos.x, mouseGridPos.y, GameTools.StringToEnum(SceneManager.GetActiveScene().name));
+            if (GetTileDetails(key) != null) Debug.Log("查找成功");
+            else Debug.Log("查找失败！");
             return GetTileDetails(key);
         }
 
@@ -386,23 +390,21 @@ namespace Farm.Map
                 }
             }
         }
-
-
         /// <summary>
-        /// 通过场景名字来获取当前场景地图的信息
+        /// 获取地图尺寸
         /// </summary>
-        /// <param name="sceneName">场景名字</param>
-        /// <param name="gridDimensions">场景的尺寸</param>
-        /// <param name="gridOrigin">场景的初始位置</param>
-        /// <returns>是否存在这些信息</returns>
-        public bool GetGridDimensions(string sceneName, out Vector2Int gridDimensions, out Vector2Int gridOrigin)
+        /// <param name="gameScene"></param>
+        /// <param name="gridDimensions"></param>
+        /// <param name="gridOrigin"></param>
+        /// <returns></returns>
+        public bool GetGridSize(GameScene gameScene, out Vector2Int gridDimensions, out Vector2Int gridOrigin)
         {
             gridDimensions = Vector2Int.zero;
             gridOrigin = Vector2Int.zero;
 
             foreach (var mapData in mapDataList)
             {
-                if (mapData.sceneName == sceneName)
+                if (mapData.gameScene == gameScene)
                 {
                     gridDimensions.x = mapData.gridWidth;
                     gridDimensions.y = mapData.gridHeight;

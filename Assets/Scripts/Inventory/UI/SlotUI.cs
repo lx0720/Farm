@@ -108,7 +108,7 @@ namespace Farm.Inventory
 
         public void OnDrag(PointerEventData eventData)
         {
-            inventoryUI.GetDragImage().transform.position = Input.mousePosition;
+            inventoryUI.GetDragImage().transform.position = UnityEngine.Input.mousePosition;
         }
 
         public void OnEndDrag(PointerEventData eventData)

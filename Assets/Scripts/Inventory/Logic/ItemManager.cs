@@ -7,17 +7,15 @@ namespace Farm.Inventory
 {
     public class ItemManager : MonoBehaviour,ISaveable
     {
-        public Item itemPrefab;
-        public Item bounceItemPrefab;
+        [SerializeField]private Item itemPrefab;
+        [SerializeField]private Item bounceItemPrefab;
         private Transform itemParent;
 
         private Transform PlayerTransform => FindObjectOfType<Player>().transform;
 
         public string GUID => GetComponent<DataGUID>().guid;
 
-        //场景中的物体
         private Dictionary<string, List<SceneItem>> sceneItemDict = new Dictionary<string, List<SceneItem>>();
-        //场景中的家具
         private Dictionary<string, List<SceneFurniture>> sceneFurnitureDict = new Dictionary<string, List<SceneFurniture>>();
 
         private void OnEnable()
@@ -83,20 +81,19 @@ namespace Farm.Inventory
         /// </summary>
         /// <param name="ID">物体的Id</param>
         /// <param name="pos">生成的位置</param>
-        private void OnInstantiateItemInScene(int ID, Vector3 pos)
+        private void OnInstantiateItemInScene(int id, Vector3 pos)
         {
-            var item = Instantiate(bounceItemPrefab, pos, Quaternion.identity, itemParent);
-            item.itemID = ID;
+            Item item = Instantiate(bounceItemPrefab, pos, Quaternion.identity, itemParent);
+            item.SetItemId(id);
             item.GetComponent<ItemBounce>().InitBounceItem(pos, Vector3.up);
         }
 
-        private void OnDropItemEvent(int ID, Vector3 mousePos, ItemType itemType)
+        private void OnDropItemEvent(int id, Vector3 mousePos, ItemType itemType)
         {
             if (itemType == ItemType.Seed) return;
-
-            var item = Instantiate(bounceItemPrefab, PlayerTransform.position, Quaternion.identity, itemParent);
-            item.itemID = ID;
-            var dir = (mousePos - PlayerTransform.position).normalized;
+            Item item = Instantiate(bounceItemPrefab, PlayerTransform.position, Quaternion.identity, itemParent);
+            item.SetItemId(id);
+            Vector3 dir = (mousePos - PlayerTransform.position).normalized;
             item.GetComponent<ItemBounce>().InitBounceItem(mousePos, dir);
         }
 
@@ -112,7 +109,7 @@ namespace Farm.Inventory
             {
                 SceneItem sceneItem = new SceneItem
                 {
-                    itemID = item.itemID,
+                    itemID = item.GetItemId(),
                     position = new SerializableVector3(item.transform.position)
                 };
 
@@ -141,7 +138,6 @@ namespace Farm.Inventory
             {
                 if (currentSceneItems != null)
                 {
-                    //找到所有的物体
                     foreach (var item in FindObjectsOfType<Item>())
                     {
                         Destroy(item.gameObject);
@@ -150,7 +146,7 @@ namespace Farm.Inventory
                     foreach (var item in currentSceneItems)
                     {
                         Item newItem = Instantiate(itemPrefab, item.position.ToVector3(), Quaternion.identity, itemParent);
-                        newItem.Init(item.itemID);
+                        newItem.ItemInit(item.itemID);
                     }
                 }
             }
@@ -176,7 +172,7 @@ namespace Farm.Inventory
 
                 currentSceneFurniture.Add(sceneFurniture);
             }
-            //把建造的家具存到家具字典
+
             if (sceneFurnitureDict.ContainsKey(SceneManager.GetActiveScene().name))
             {
                 sceneFurnitureDict[SceneManager.GetActiveScene().name] = currentSceneFurniture;

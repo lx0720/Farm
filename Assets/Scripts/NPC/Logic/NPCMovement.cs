@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Farm.AStar;
 using Farm.Save;
+using Farm.Tool;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -15,14 +16,14 @@ public class NPCMovement : MonoBehaviour,ISaveable
     private ScheduleDetails currentSchedule;
 
     //临时存储信息
-    private string currentScene;
-    private string targetScene;
+    private GameScene currentScene;
+    private GameScene targetScene;
     private Vector3Int currentGridPosition;
     private Vector3Int tragetGridPosition;
     private Vector3Int nextGridPosition;
     private Vector3 nextWorldPosition;
 
-    public string StartScene { set => currentScene = value; }
+    public GameScene StartScene { set => currentScene = value; }
 
     [Header("移动属性")]
     public float normalSpeed = 2f;
@@ -58,7 +59,7 @@ public class NPCMovement : MonoBehaviour,ISaveable
 
     public string GUID => GetComponent<DataGUID>().guid;
 
-    public void SetCurrentScene(string scene) { currentScene = scene; }
+    public void SetCurrentScene(GameScene gameScene) { currentScene = gameScene; }
 
     private void Awake()
     {
@@ -144,9 +145,9 @@ public class NPCMovement : MonoBehaviour,ISaveable
         {
             if (schedule.Time == time)
             {
-                if (schedule.day != day && schedule.day != 0)
+                if (schedule.GetScheduleDay() != day && schedule.GetScheduleDay() != 0)
                     continue;
-                if (schedule.season != season)
+                if (schedule.GetSeason() != season)
                     continue;
                 matchSchedule = schedule;
             }
@@ -156,7 +157,7 @@ public class NPCMovement : MonoBehaviour,ISaveable
             }
         }
         if (matchSchedule != null)
-            BuildPath(matchSchedule);
+            BuildShortestPath(matchSchedule);
     }
 
     private void OnBeforeSceneUnloadEvent()
@@ -167,7 +168,7 @@ public class NPCMovement : MonoBehaviour,ISaveable
     private void OnAfterSceneLoadedEvent()
     {
         gird = FindObjectOfType<Grid>();
-        CheckVisiable();
+        UpdateNPCVisiableState();
 
         if (!isInitialised)
         {
@@ -181,14 +182,14 @@ public class NPCMovement : MonoBehaviour,ISaveable
         {
             currentGridPosition = gird.WorldToCell(transform.position);
             var schedule = new ScheduleDetails(0, 0, 0, 0, currentSeason, targetScene, (Vector2Int)tragetGridPosition, stopAnimationClip, Interactable);
-            BuildPath(schedule);
+            BuildShortestPath(schedule);
             isFirstLoad = true;
         }
     }
 
-    private void CheckVisiable()
+    private void UpdateNPCVisiableState()
     {
-        if (currentScene == SceneManager.GetSceneAt(SceneManager.sceneCount-1).name)
+        if (currentScene == GameTools.StringToEnum(SceneManager.GetActiveScene().name))
             SetActiveInScene();
         else
             SetInactiveInScene();
@@ -199,7 +200,6 @@ public class NPCMovement : MonoBehaviour,ISaveable
     {
         targetScene = currentScene;
 
-        //保持当前NPC在坐标的网格中心坐标
         currentGridPosition = gird.WorldToCell(transform.position);
         transform.position = new Vector3(currentGridPosition.x + Settings.gridCellSize / 2f, currentGridPosition.y + Settings.gridCellSize / 2f, 0);
 
@@ -219,7 +219,7 @@ public class NPCMovement : MonoBehaviour,ISaveable
 
                 currentScene = step.sceneName;
 
-                CheckVisiable();
+                UpdateNPCVisiableState();
                 nextGridPosition = (Vector3Int)step.gridCoordinate;
                 TimeSpan stepTime = new TimeSpan(step.hour, step.minute, step.second);
 
@@ -277,23 +277,21 @@ public class NPCMovement : MonoBehaviour,ISaveable
     /// 根据Schedule构建路径
     /// </summary>
     /// <param name="schedule"></param>
-    public void BuildPath(ScheduleDetails schedule)
+    public void BuildShortestPath(ScheduleDetails schedule)
     {
         movementSteps.Clear();
         currentSchedule = schedule;
-        targetScene = schedule.targetScene;
-        tragetGridPosition = (Vector3Int)schedule.targetGridPosition;
-        stopAnimationClip = schedule.clipAtStop;
-        this.Interactable = schedule.interactable;
-        //同一场景
-        if (schedule.targetScene == currentScene)
+        targetScene = schedule.GetTargetScene();
+        tragetGridPosition = (Vector3Int)schedule.GetTargetPosition();
+        stopAnimationClip = schedule.GetAnimationClip();
+        Interactable = schedule.GetNPCInteractableState();
+        if (schedule.GetTargetScene() == currentScene)
         {
-            AStar.Instance.BuildPath(schedule.targetScene, (Vector2Int)currentGridPosition, schedule.targetGridPosition, movementSteps);
+            AStar.Instance.BuildShortestPath(schedule.GetTargetScene(), (Vector2Int)currentGridPosition, schedule.GetTargetPosition(), movementSteps);
         }
-        //不同场景
-        else if (schedule.targetScene != currentScene)
+        else if (schedule.GetTargetScene() != currentScene)
         {
-            SceneRoute sceneRoute = NPCManager.Instance.GetSceneRoute(currentScene, schedule.targetScene);
+            SceneRoute sceneRoute = NPCManager.Instance.GetSceneRoute(currentScene, schedule.GetTargetScene());
             if (sceneRoute != null)
             {
                 for (int i = 0; i < sceneRoute.scenePathList.Count; i++)
@@ -312,21 +310,20 @@ public class NPCMovement : MonoBehaviour,ISaveable
 
                     if (path.gotoGridCell.x >= Settings.maxGridSize)
                     {
-                        gotoPos = schedule.targetGridPosition;
+                        gotoPos = schedule.GetTargetPosition();
                     }
                     else
                     {
                         gotoPos = path.gotoGridCell;
                     }
 
-                    AStar.Instance.BuildPath(path.sceneName, fromPos, gotoPos, movementSteps);
+                    AStar.Instance.BuildShortestPath(path.sceneName, fromPos, gotoPos, movementSteps);
                 }
             }
         }
 
         if (movementSteps.Count > 1)
         {
-            //更新每一步对应的时间
             UpdateTimeOnPath();
         }
     }
@@ -356,10 +353,7 @@ public class NPCMovement : MonoBehaviour,ISaveable
                 gridMovementStepTime = new TimeSpan(0, 0, (int)(Settings.gridCellDiagonalSize / normalSpeed / Settings.secondThreshold));
             else
                 gridMovementStepTime = new TimeSpan(0, 0, (int)(Settings.gridCellSize / normalSpeed / Settings.secondThreshold));
-
-            //累加获得下一步的时间
             currentGameTime = currentGameTime.Add(gridMovementStepTime);
-            //循环下一个步骤
             previousSetp = step;
         }
     }
@@ -406,7 +400,6 @@ public class NPCMovement : MonoBehaviour,ISaveable
 
     private IEnumerator SetStopAnimation()
     {
-        //强制面向镜头
         anim.SetFloat("DirX", 0);
         anim.SetFloat("DirY", -1);
 
@@ -451,7 +444,7 @@ public class NPCMovement : MonoBehaviour,ISaveable
         saveData.characterPosDict.Add("targetGridPosition", new SerializableVector3(tragetGridPosition));
         saveData.characterPosDict.Add("currentPosition", new SerializableVector3(transform.position));
         saveData.dataSceneName = currentScene;
-        saveData.targetScene = this.targetScene;
+        saveData.targetScene = targetScene;
         if (stopAnimationClip != null)
         {
             saveData.animationInstanceID = stopAnimationClip.GetInstanceID();

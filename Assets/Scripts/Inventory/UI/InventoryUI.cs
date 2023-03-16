@@ -1,3 +1,4 @@
+using Farm.Input;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -56,7 +57,7 @@ namespace Farm.Inventory
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.B))
+            if (InputManager.Instance.GetbPack())
             {
                 OpenBagUI();
             }

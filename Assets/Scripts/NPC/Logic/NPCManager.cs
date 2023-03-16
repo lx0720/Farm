@@ -5,7 +5,7 @@ using UnityEngine;
 public class NPCManager : MonoSingleton<NPCManager>
 {
     public SceneRouteDataList_SO sceneRouteDate;
-    public List<NPCPosition> npcPositionList;
+    public List<NPCPosition> npcInitialPosition;
 
     private Dictionary<string, SceneRoute> sceneRouteDict = new Dictionary<string, SceneRoute>();
 
@@ -28,23 +28,21 @@ public class NPCManager : MonoSingleton<NPCManager>
 
     private void OnStartNewGameEvent(int obj)
     {
-        foreach (var character in npcPositionList)
+        foreach (var npc in npcInitialPosition)
         {
-            character.npc.position = character.position;
-            character.npc.GetComponent<NPCMovement>().SetCurrentScene(character.startScene);
+            npc.npcTransform.position = npc.position;
+            npc.npcTransform.GetComponent<NPCMovement>().SetCurrentScene(npc.initialScene);
         }
     }
 
-    /// <summary>
-    /// 初始化场景路线
-    /// <summary>
+    //初始化场景路线
     private void InitSceneRouteDict()
     {
         if (sceneRouteDate.sceneRouteList.Count > 0)
         {
             foreach (SceneRoute route in sceneRouteDate.sceneRouteList)
             {
-                var key = route.fromSceneName + route.gotoSceneName;
+                var key = KeyHelper.Instance.GetKey(route.fromSceneName,route.gotoSceneName);
 
                 if (sceneRouteDict.ContainsKey(key))
                     continue;
@@ -60,8 +58,8 @@ public class NPCManager : MonoSingleton<NPCManager>
     /// <param name="fromSceneName">出发场景</param>
     /// <param name="gotoSceneName">到达场景</param>
     /// <returns></returns>
-    public SceneRoute GetSceneRoute(string fromSceneName, string gotoSceneName)
+    public SceneRoute GetSceneRoute(GameScene fromSceneName, GameScene gotoSceneName)
     {
-        return sceneRouteDict[fromSceneName + gotoSceneName];
+        return sceneRouteDict[KeyHelper.Instance.GetKey(fromSceneName, gotoSceneName)];
     }
 }

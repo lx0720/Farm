@@ -52,7 +52,6 @@ public class PoolManager : MonoBehaviour
 
     private void OnParticleEffectEvent(ParticleEffectType effectType, Vector3 pos)
     {   
-        //通过枚举得到需要得对象池
         ObjectPool<GameObject> objPool = effectType switch
         {
             ParticleEffectType.LeavesFalling01 => poolEffectList[0],
@@ -61,7 +60,6 @@ public class PoolManager : MonoBehaviour
             ParticleEffectType.ReapableScenery => poolEffectList[3],
             _ => null,
         };
-        //在池子中得到对象
         GameObject obj = objPool.Get();
         obj.transform.position = pos;
         StartCoroutine(ReleaseRoutine(objPool, obj));

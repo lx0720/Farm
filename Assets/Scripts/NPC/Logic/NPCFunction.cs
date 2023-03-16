@@ -11,7 +11,6 @@ public class NPCFunction : MonoBehaviour
     {
         if (isOpen && Input.GetKeyDown(KeyCode.Escape))
         {
-            //关闭背包
             CloseShop();
         }
     }

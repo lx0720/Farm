@@ -33,7 +33,7 @@ namespace Farm.Inventory
 
         private void Update()
         {
-            if (Input.GetKeyDown(key) && canUse)
+            if (UnityEngine.Input.GetKeyDown(key) && canUse)
             {
                 if (slotUI.itemDetails != null)
                 {

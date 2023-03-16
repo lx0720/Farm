@@ -11,13 +11,9 @@ namespace Farm.Inventory
             Item item = other.GetComponent<Item>();
             if (item != null)
             {
-                if (item.itemDetails.canPickedup)
+                if (item.GetItemDetails().canPickedup)
                 {
-                    //拾取物品添加到背包
-                    Debug.Log("拾取");
-                    InventoryManager.Instance.AddItem(item, true);
-
-                    //播放音效
+                    InventoryManager.Instance.AddItemInInventory(item, true);
                     EventCenter.CallPlaySoundEvent(SoundName.Pickup);
                 }
             }

@@ -23,8 +23,8 @@ public class Settings
     //NPC网格移动
     public const float gridCellSize = 1;
     public const float gridCellDiagonalSize = 1.41f;
-    public const float pixelSize = 0.05f;   //20*20 占 1 unit
-    public const float animationBreakTime = 5f; //动画间隔时间
+    public const float pixelSize = 0.05f;   
+    public const float animationBreakTime = 5f; 
     public const int maxGridSize = 9999;
 
     //灯光
@@ -32,6 +32,6 @@ public class Settings
     public static TimeSpan morningTime = new TimeSpan(5, 0, 0);
     public static TimeSpan nightTime = new TimeSpan(19, 0, 0);
 
-    public static Vector3 playerStartPos = new Vector3(1f, 10f, 0);
+    public static Vector3 GameStartPlayerPos = new Vector3(1f, 10f, 0);
     public const int playerStartMoney = 100;
 }

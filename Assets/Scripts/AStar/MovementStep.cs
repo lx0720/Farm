@@ -6,7 +6,7 @@ namespace Farm.AStar
 {
     public class MovementStep
     {
-        public string sceneName;
+        public GameScene sceneName;
         public int hour;
         public int minute;
         public int second;

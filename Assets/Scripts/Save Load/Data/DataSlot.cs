@@ -40,12 +40,8 @@ namespace Farm.Save
                     var transitionData = dataDict[key];
                     return transitionData.dataSceneName switch
                     {
-                        "00.Start" => "海边",
-                        "01.Field" => "农场",
-                        "02.Home" => "小木屋",
-                        "03.Stall" => "市场",
-                        "04.Path" => "小径",
-                        "05.House01" => "Trace的家",
+                        GameScene.InitialScene => "庭院",
+                        GameScene.HomeScene => "屋内",
                         _ => string.Empty
                     };
                 }
