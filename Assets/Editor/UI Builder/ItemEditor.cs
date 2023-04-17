@@ -9,7 +9,7 @@ using UnityEngine.UIElements;
 
 public class ItemEditor : EditorWindow
 {
-    private ItemDataList_SO dataBase;
+/*    //private ItemDataList_SO dataBase;
     private List<ItemDetails> itemList = new List<ItemDetails>();
     private VisualTreeAsset itemRowTemplate;
     private ScrollView itemDetailsSection;
@@ -214,5 +214,5 @@ public class ItemEditor : EditorWindow
         {
             activeItem.sellPercentage = evt.newValue;
         });
-    }
+    }*/
 }

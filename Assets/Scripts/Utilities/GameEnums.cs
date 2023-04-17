@@ -2,7 +2,24 @@ public enum GameScene
 {
     ErrorScene,InitialScene,UIScene,YardScene,HomeScene
 }
+public enum GameSeason
+{
+    Spring,Summer,Autumn,Winter
+}
 
+public enum CharacterName
+{
+    None,Herry,Duora,Lisa,Jim
+}
+public enum CursorType
+{
+    None,Normal,Build,Choose
+}
+
+public enum TileType
+{
+    CanDig,CanPlace,CantWalk,CanDrop
+}
 
 public enum ItemType
 {

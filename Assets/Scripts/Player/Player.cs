@@ -5,8 +5,9 @@ using Farm.Tool;
 using Farm.Input;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Farm.Transition;
 
-public class Player : MonoBehaviour,ISaveable
+public class Player : MonoBehaviour,ISaveLoad
 {
     private Rigidbody2D rb;
 
@@ -36,7 +37,6 @@ public class Player : MonoBehaviour,ISaveable
     private int moveBool;
 
 
-    public string GUID => GetComponent<DataGUID>().guid;
 
     private void Awake()
     {
@@ -45,30 +45,33 @@ public class Player : MonoBehaviour,ISaveable
     }
 
     private void Start()
-    {
-        ISaveable saveable = this;
-        saveable.RegisterSaveable();
+    { 
+        StringToHash();
+        RegisterInterface();
     }
 
     private void OnEnable()
     {
-        EventCenter.BeforeSceneUnloadEvent += OnBeforeSceneUnloadEvent;
+        /*EventCenter.BeforeSceneUnloadEvent += OnBeforeSceneUnloadEvent;
         EventCenter.AfterSceneLoadedEvent += OnAfterSceneLoadedEvent;
         EventCenter.MoveToPosition += OnMoveToPosition;
         EventCenter.MouseClickedEvent += OnMouseClickedEvent;
-        EventCenter.UpdateGameStateEvent += OnUpdateGameStateEvent;
-        EventCenter.StartNewGameEvent += OnStartNewGameEvent;
+        EventCenter.UpdateGameStateEvent += OnUpdateGameStateEvent;*/
+        EventManager.AddEventListener<int>(ConstString.StartNewGameEvent, OnStartNewGameEvent);
+        EventManager.AddEventListener<GameScene, Vector3>(ConstString.TransitionSceneEvent, OnTransitionScene);
 
     }
 
     private void OnDisable()
     {
-        EventCenter.BeforeSceneUnloadEvent -= OnBeforeSceneUnloadEvent;
+     /*   EventCenter.BeforeSceneUnloadEvent -= OnBeforeSceneUnloadEvent;
         EventCenter.AfterSceneLoadedEvent -= OnAfterSceneLoadedEvent;
         EventCenter.MoveToPosition -= OnMoveToPosition;
         EventCenter.MouseClickedEvent -= OnMouseClickedEvent;
-        EventCenter.UpdateGameStateEvent -= OnUpdateGameStateEvent;
-        EventCenter.StartNewGameEvent -= OnStartNewGameEvent;
+        EventCenter.UpdateGameStateEvent -= OnUpdateGameStateEvent;*/
+
+        EventManager.RemoveEventListener<int>(ConstString.StartNewGameEvent, OnStartNewGameEvent);
+        EventManager.RemoveEventListener<GameScene, Vector3>(ConstString.TransitionSceneEvent, OnTransitionScene);
     }
 
     private void Update()
@@ -86,15 +89,22 @@ public class Player : MonoBehaviour,ISaveable
             PlayerMovement();
     }
 
-    public void StringToHash(string animatorField)
+    private void StringToHash()
     {
         moveX = Animator.StringToHash("InputX");
         moveY = Animator.StringToHash("InputY");
-        mouseX = Animator.StringToHash("MouseY");
+        mouseX = Animator.StringToHash("MouseX");
         mouseY = Animator.StringToHash("MouseY");
         moveBool = Animator.StringToHash("IsMoving");
     }
 
+    private void OnTransitionScene(GameScene transitionScene,Vector3 transitionPosition)
+    {
+        transform.position = transitionPosition;
+        moveEndX = 0;
+        moveEndY = -1;
+        SwitchPlayerAnimation();
+    }
     private void OnStartNewGameEvent(int obj)
     {
         transform.position = Settings.GameStartPlayerPos;
@@ -132,7 +142,7 @@ public class Player : MonoBehaviour,ISaveable
         }
         else
         {
-            EventCenter.CallExecuteActionAfterAnimation(mouseWorldPos, itemDetails);
+            //EventCenter.CallExecuteActionAfterAnimation(mouseWorldPos, itemDetails);
         }
     }
 
@@ -148,7 +158,7 @@ public class Player : MonoBehaviour,ISaveable
             anim.SetFloat("InputY", mouseY);
         }
         yield return new WaitForSeconds(0.45f);
-        EventCenter.CallExecuteActionAfterAnimation(mouseWorldPos, itemDetails);
+        //EventCenter.CallExecuteActionAfterAnimation(mouseWorldPos, itemDetails);
         yield return new WaitForSeconds(0.25f);
 
         useTool = false;
@@ -208,20 +218,39 @@ public class Player : MonoBehaviour,ISaveable
         }
     }
 
-    public GameSaveData GenerateSaveData()
-    {
-        GameSaveData saveData = new GameSaveData();
-        saveData.dataSceneName = GameTools.StringToEnum(SceneManager.GetActiveScene().name);
-        saveData.characterPosDict = new Dictionary<string, SerializableVector3>();
-        saveData.characterPosDict.Add(this.name, new SerializableVector3(transform.position));
+    public string GetGuid()=> GetComponent<Guid>().ModuleGuid;
 
-        return saveData;
+
+    public GameSaveData SaveGameData()
+    {
+        GameSaveData gameSaveData = new GameSaveData();
+        gameSaveData.characterPositionDict = new Dictionary<CharacterName,CharacterInfos>();
+        CharacterInfos infos = new CharacterInfos(transform.position);
+        infos.endDirection = new Vector2Int((int)moveEndX,(int)moveEndY);
+        if(gameSaveData.characterPositionDict.ContainsKey(CharacterName.Herry))
+        {
+            gameSaveData.characterPositionDict[CharacterName.Herry] = infos;
+        }
+        else
+        {
+            gameSaveData.characterPositionDict.Add(CharacterName.Herry, infos);
+        }
+        gameSaveData.moduleName = "Player";
+        return gameSaveData;
     }
 
-    public void RestoreData(GameSaveData saveData)
+    public void LoadGameData(GameSaveData gameSaveData)
     {
-        var targetPosition = saveData.characterPosDict[this.name].ToVector3();
 
-        transform.position = targetPosition;
+        Vector3Int position = gameSaveData.characterPositionDict[CharacterName.Herry].position;
+        moveEndX = gameSaveData.characterPositionDict[CharacterName.Herry].endDirection.x;
+        moveEndY = gameSaveData.characterPositionDict[CharacterName.Herry].endDirection.y;
+        SwitchPlayerAnimation();
+        transform.position = new Vector3(position.x,position.y,position.z);
+    }
+
+    public void RegisterInterface()
+    {
+        SaveLoadManager.Instance.RegisterInterface(this);
     }
 }

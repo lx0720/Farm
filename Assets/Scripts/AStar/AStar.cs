@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Farm.Map;
 using UnityEngine;
@@ -6,217 +7,337 @@ namespace Farm.AStar
 {
     public class AStar : MonoSingleton<AStar>
     {
-        private GridNodes gridNodes;
+        private NodeManager nodeManager;
         private Node startNode;
-        private Node targetNode;
-        private int gridWidth;
-        private int gridHeight;
+        private Node endNode;
+        private Node tempNode;
+        private Node tempOpenListMinNode;
+        private List<Node> openList;
+        private HashSet<Node> closeSet;
+        private Stack<Node> shortestPathStack;
+        private Dictionary<string, Node> mappingMapToNodeDict;
+
+        private bool hasFindPath;
+        private int minNode;
         private int originX;
         private int originY;
 
-
-
-        private List<Node> openNodeList;   
-        private HashSet<Node> closedNodeList;  
-
-        private bool hasShorterPath;
-
-
-        /// <summary>
-        /// 构建最短路径
-        /// </summary>
-        /// <param name="sceneName"></param>
-        /// <param name="startPos"></param>
-        /// <param name="endPos"></param>
-        /// <param name="npcMovementStack"></param>
-        public void BuildShortestPath(GameScene targetScene, Vector2Int startPos, Vector2Int endPos, Stack<MovementStep> npcMovementStack)
+        public Stack<Node> FindShortestPath(GameScene targetScene,Vector2Int startNodePos,Vector2Int endNodePos)
         {
-            hasShorterPath = false;
+            BuildSceneMap(targetScene);
+            startNode = nodeManager.GetNode(startNodePos.x, startNodePos.y);
+            endNode = nodeManager.GetNode(endNodePos.x, endNodePos.y);
 
-            if (GenerateGridNodes(targetScene, startPos, endPos))
+            if (BuildPath())
             {
-                if (FindShortestPath())
+                return NodeIntoStack();
+            }
+                     
+            return null;
+        }
+
+        private void BuildSceneMap(GameScene targetScene)
+        {
+            Vector2Int mapSize = GridMapManager.Instance.GetMapSize(targetScene);
+            Vector2Int originPosition = GridMapManager.Instance.GetMapOriginPosition(targetScene);
+
+            originX = mapSize.x;
+            originY = mapSize.y;
+
+            openList ??= new List<Node>();
+            closeSet ??= new HashSet<Node>();
+
+            nodeManager = new NodeManager(mapSize.x,mapSize.y);
+            mappingMapToNodeDict = new Dictionary<string, Node>();
+
+            for(int i= 0;i<mapSize.x;i++)
+            {
+                for(int j = 0;j<mapSize.y;j++)
                 {
-                    UpdatePathOnMovementStepStack(targetScene, npcMovementStack);
+                    Node node = nodeManager.GetNode(i, j);
+                    mappingMapToNodeDict.Add(GetKey(targetScene, i, j), node);
+                    TileDetails tileDetails = GridMapManager.Instance.GetTileDetails(new Vector2Int(i - originPosition.x, j - originPosition.y), targetScene);
+                    node.walkable = !tileDetails.cantWalk;
                 }
             }
         }
 
-
-
-        /// <summary>
-        /// 构建网格节点信息，初始化两个列表
-        /// </summary>
-        /// <param name="sceneName">场景名字</param>
-        /// <param name="startPos">起点</param>
-        /// <param name="endPos">终点</param>
-        /// <returns></returns>
-        private bool GenerateGridNodes(GameScene targetScene, Vector2Int startPos, Vector2Int endPos)
+        private bool BuildPath()
         {
-            if (GridMapManager.Instance.GetGridSize(targetScene, out Vector2Int gridDimensions, out Vector2Int gridOrigin))
-            {
-                gridNodes = new GridNodes(gridDimensions.x, gridDimensions.y);
-                gridWidth = gridDimensions.x;
-                gridHeight = gridDimensions.y;
-                originX = gridOrigin.x;
-                originY = gridOrigin.y;
+            openList.Add(startNode);
 
-                openNodeList ??= new List<Node>();
-                closedNodeList ??= new HashSet<Node>();
-            }
-            else
-                return false;
-            startNode = gridNodes.GetGridNode(startPos.x - originX, startPos.y - originY);
-            targetNode = gridNodes.GetGridNode(endPos.x - originX, endPos.y - originY);
-
-            for (int x = 0; x < gridWidth; x++)
+            while (openList.Count > 0)
             {
-                for (int y = 0; y < gridHeight; y++)
+                tempOpenListMinNode = FindOpenListLeastNode();
+
+                if(tempOpenListMinNode == endNode)
                 {
-                    Vector3Int tilePos = new Vector3Int(x + originX, y + originY, 0);
-                    var key = tilePos.x + "x" + tilePos.y + "y" + targetScene.ToString();
+                    return true;
+                }
 
-                    TileDetails tile = GridMapManager.Instance.GetTileDetails(key);
-
-                    if (tile != null)
+                if (tempOpenListMinNode != null)
+                {
+                    closeSet.Add(tempOpenListMinNode);
+                    for (int i = 0; i < tempOpenListMinNode.neighborNodes.Count; i++)
                     {
-                        Node node = gridNodes.GetGridNode(x, y);
-
-                        if (tile.isNPCObstacle)
+                        tempNode = tempOpenListMinNode.neighborNodes[i];
+                        if (!openList.Contains(tempNode) || !closeSet.Contains(tempNode))
                         {
-                            node.SetObstacle(true);
+                            openList.Add(tempNode);
                         }
                     }
                 }
             }
-
-            return true;
+            return false;
         }
 
-        /// <summary>
-        /// 找到最短路径所有node添加到 closedNodeList
-        /// </summary>
-        /// <returns></returns>
-        private bool FindShortestPath()
+        public Node FindOpenListLeastNode()
         {
-            openNodeList.Add(startNode);
-            while (openNodeList.Count > 0)
+            if (openList.Count <= 0)
+                return null;
+            minNode = 0;
+            for(int i= 1;i<openList.Count;i++)
             {
-                openNodeList.Sort();
-
-                Node closeNode = openNodeList[0];
-
-                openNodeList.RemoveAt(0);
-                closedNodeList.Add(closeNode);
-
-                if (closeNode == targetNode)
+                if(openList[i].fCost < openList[minNode].fCost)
                 {
-                    hasShorterPath = true;
-                    break;
+                    minNode = i;
                 }
-                EvaluateNeighbourNodes(closeNode);
             }
-
-            return hasShorterPath;
+            return openList[minNode];
         }
-     
-        /// <summary>
-        /// 评估周围8个点，并生成对应消耗值
-        /// </summary>
-        /// <param name="currentNode"></param>
-        private void EvaluateNeighbourNodes(Node currentNode)
+
+        private Stack<Node> NodeIntoStack()
         {
-            Vector2Int currentNodePos = currentNode.GetGridPosition();
-            Node validNeighbourNode;
+            if (shortestPathStack == null)
+                shortestPathStack = new Stack<Node>();
+            else
+                shortestPathStack.Clear();
 
-            for (int x = -1; x <= 1; x++)
+            while(endNode != startNode)
             {
-                for (int y = -1; y <= 1; y++)
+                shortestPathStack.Push(endNode);
+                endNode = endNode.parentNode;
+            }
+            return shortestPathStack;
+        }
+
+        private string GetKey(GameScene targetScene,int i,int j)
+        {
+            return targetScene + (i + originX).ToString() + (j + originY).ToString();
+        }
+
+        /*     private AStarNodes nodes;
+             private AStarNode startNode;
+             private AStarNode endNode;
+             private int gridWidth;
+             private int gridHeight;
+             private int originX;
+             private int originY;
+
+
+             private List<Node> openNodeList;
+             private HashSet<AStarNode> closedNodeList;
+
+             private bool hasShorterPath;
+
+     */
+
+        /*        /// <summary>
+                /// 构建最短路径
+                /// </summary>
+                /// <param name="sceneName"></param>
+                /// <param name="startPos"></param>
+                /// <param name="endPos"></param>
+                /// <param name="npcMovementStack"></param>
+                public void BuildShortestPath(GameScene targetScene, Vector2Int startPos, Vector2Int endPos, Stack<MovementStep> npcMovementStack)
                 {
-                    if (x == 0 && y == 0)
-                        continue;
+                    hasShorterPath = false;
 
-                    validNeighbourNode = GetValidNeighbourNode(currentNodePos.x + x, currentNodePos.y + y);
-
-                    if (validNeighbourNode != null)
+                    if (GenerateGridNodes(targetScene, startPos, endPos))
                     {
-                        if (!openNodeList.Contains(validNeighbourNode) && !closedNodeList.Contains(validNeighbourNode))
+                        if (FindShortestPath())
                         {
-                            validNeighbourNode.SetGCost(currentNode.GetGCost() + GetDistance(currentNode, validNeighbourNode));
-                            validNeighbourNode.SetHCost(GetManhattanDistance(validNeighbourNode,targetNode));
-                            validNeighbourNode.SetParentNode(currentNode);
-                            openNodeList.Add(validNeighbourNode);
+                            UpdatePathOnMovementStepStack(targetScene, npcMovementStack);
                         }
                     }
                 }
-            }
-        }
 
 
-        /// <summary>
-        /// 找到有效的Node,非障碍，非已选择
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <returns></returns>
-        private Node GetValidNeighbourNode(int x, int y)
-        {
-            if (x >= gridWidth || y >= gridHeight || x < 0 || y < 0)
-                return null;
 
-            Node neighbourNode = gridNodes.GetGridNode(x, y);
+                /// <summary>
+                /// 构建网格节点信息，初始化两个列表
+                /// </summary>
+                /// <param name="sceneName">场景名字</param>
+                /// <param name="startPos">起点</param>
+                /// <param name="endPos">终点</param>
+                /// <returns></returns>
+                private bool GenerateGridNodes(GameScene targetScene, Vector2Int startPos, Vector2Int endPos)
+                {
+                    if (GridMapManager.Instance.GetGridSize(targetScene, out Vector2Int gridDimensions, out Vector2Int gridOrigin))
+                    {
+                        gridNodes = new GridNodes(gridDimensions.x, gridDimensions.y);
+                        gridWidth = gridDimensions.x;
+                        gridHeight = gridDimensions.y;
+                        originX = gridOrigin.x;
+                        originY = gridOrigin.y;
 
-            if (neighbourNode.GetIsObstacle() || closedNodeList.Contains(neighbourNode))
-                return null;
-            else
-                return neighbourNode;
-        }
+                        openNodeList ??= new List<Node>();
+                        closedNodeList ??= new HashSet<Node>();
+                    }
+                    else
+                        return false;
+                    startNode = gridNodes.GetGridNode(startPos.x - originX, startPos.y - originY);
+                    targetNode = gridNodes.GetGridNode(endPos.x - originX, endPos.y - originY);
+
+                    for (int x = 0; x < gridWidth; x++)
+                    {
+                        for (int y = 0; y < gridHeight; y++)
+                        {
+                            Vector3Int tilePos = new Vector3Int(x + originX, y + originY, 0);
+                            var key = tilePos.x + "x" + tilePos.y + "y" + targetScene.ToString();
+
+                            TileDetails tile = GridMapManager.Instance.GetTileDetails(key);
+
+                            if (tile != null)
+                            {
+                                Node node = gridNodes.GetGridNode(x, y);
+
+                                if (tile.isNPCObstacle)
+                                {
+                                    node.SetObstacle(true);
+                                }
+                            }
+                        }
+                    }
+
+                    return true;
+                }
+
+                /// <summary>
+                /// 找到最短路径所有node添加到 closedNodeList
+                /// </summary>
+                /// <returns></returns>
+                private bool FindShortestPath()
+                {
+                    openNodeList.Add(startNode);
+                    while (openNodeList.Count > 0)
+                    {
+                        openNodeList.Sort();
+
+                        Node closeNode = openNodeList[0];
+
+                        openNodeList.RemoveAt(0);
+                        closedNodeList.Add(closeNode);
+
+                        if (closeNode == targetNode)
+                        {
+                            hasShorterPath = true;
+                            break;
+                        }
+                        EvaluateNeighbourNodes(closeNode);
+                    }
+
+                    return hasShorterPath;
+                }
+
+                /// <summary>
+                /// 评估周围8个点，并生成对应消耗值
+                /// </summary>
+                /// <param name="currentNode"></param>
+                private void EvaluateNeighbourNodes(Node currentNode)
+                {
+                    Vector2Int currentNodePos = currentNode.GetGridPosition();
+                    Node validNeighbourNode;
+
+                    for (int x = -1; x <= 1; x++)
+                    {
+                        for (int y = -1; y <= 1; y++)
+                        {
+                            if (x == 0 && y == 0)
+                                continue;
+
+                            validNeighbourNode = GetValidNeighbourNode(currentNodePos.x + x, currentNodePos.y + y);
+
+                            if (validNeighbourNode != null)
+                            {
+                                if (!openNodeList.Contains(validNeighbourNode) && !closedNodeList.Contains(validNeighbourNode))
+                                {
+                                    validNeighbourNode.SetGCost(currentNode.GetGCost() + GetDistance(currentNode, validNeighbourNode));
+                                    validNeighbourNode.SetHCost(GetManhattanDistance(validNeighbourNode,targetNode));
+                                    validNeighbourNode.SetParentNode(currentNode);
+                                    openNodeList.Add(validNeighbourNode);
+                                }
+                            }
+                        }
+                    }
+                }
 
 
-        /// <summary>
-        /// 返回两点距离值
-        /// </summary>
-        /// <param name="nodeA"></param>
-        /// <param name="nodeB"></param>
-        /// <returns>14的倍数+10的倍数</returns>
-        private int GetDistance(Node nodeA, Node nodeB)
-        {
-            int xDistance = Mathf.Abs(nodeA.GetGridPosition().x - nodeB.GetGridPosition().x);
-            int yDistance = Mathf.Abs(nodeA.GetGridPosition().y - nodeB.GetGridPosition().y);
-            return xDistance > yDistance ? 
-                14 * yDistance + 10 * (xDistance - yDistance): 
-                14 * xDistance + 10 * (yDistance - xDistance);
-        }
-        /// <summary>
-        /// 得到两点间的曼哈顿距离
-        /// </summary>
-        /// <param name="nodeA"></param>
-        /// <param name="nodeB"></param>
-        /// <returns></returns>
-        public int GetManhattanDistance(Node nodeA,Node nodeB)
-        {
-            return 10 * (Mathf.Abs(nodeB.GetGridPosition().y - nodeA.GetGridPosition().y) 
-                + 10 * Mathf.Abs(nodeB.GetGridPosition().x - nodeA.GetGridPosition().x));
-        }
+                /// <summary>
+                /// 找到有效的Node,非障碍，非已选择
+                /// </summary>
+                /// <param name="x"></param>
+                /// <param name="y"></param>
+                /// <returns></returns>
+                private Node GetValidNeighbourNode(int x, int y)
+                {
+                    if (x >= gridWidth || y >= gridHeight || x < 0 || y < 0)
+                        return null;
+
+                    Node neighbourNode = gridNodes.GetGridNode(x, y);
+
+                    if (neighbourNode.GetIsObstacle() || closedNodeList.Contains(neighbourNode))
+                        return null;
+                    else
+                        return neighbourNode;
+                }
 
 
-        /// <summary>
-        /// 更新路径每一步的坐标和场景名字
-        /// </summary>
-        /// <param name="sceneName"></param>
-        /// <param name="npcMovementStep"></param>
-        private void UpdatePathOnMovementStepStack(GameScene targetScene, Stack<MovementStep> npcMovementStep)
-        {
-            Node nextNode = targetNode;
+                /// <summary>
+                /// 返回两点距离值
+                /// </summary>
+                /// <param name="nodeA"></param>
+                /// <param name="nodeB"></param>
+                /// <returns>14的倍数+10的倍数</returns>
+                private int GetDistance(Node nodeA, Node nodeB)
+                {
+                    int xDistance = Mathf.Abs(nodeA.GetGridPosition().x - nodeB.GetGridPosition().x);
+                    int yDistance = Mathf.Abs(nodeA.GetGridPosition().y - nodeB.GetGridPosition().y);
+                    return xDistance > yDistance ? 
+                        14 * yDistance + 10 * (xDistance - yDistance): 
+                        14 * xDistance + 10 * (yDistance - xDistance);
+                }
+                /// <summary>
+                /// 得到两点间的曼哈顿距离
+                /// </summary>
+                /// <param name="nodeA"></param>
+                /// <param name="nodeB"></param>
+                /// <returns></returns>
+                public int GetManhattanDistance(Node nodeA,Node nodeB)
+                {
+                    return 10 * (Mathf.Abs(nodeB.GetGridPosition().y - nodeA.GetGridPosition().y) 
+                        + 10 * Mathf.Abs(nodeB.GetGridPosition().x - nodeA.GetGridPosition().x));
+                }
 
-            while (nextNode != null)
-            {
-                MovementStep newStep = new MovementStep();
-                newStep.sceneName = targetScene;
-                newStep.gridCoordinate = new Vector2Int(nextNode.GetGridPosition().x + originX, nextNode.GetGridPosition().y + originY);
-                npcMovementStep.Push(newStep);
-                nextNode = nextNode.GetParentNode();
-            }
-        }
+
+                /// <summary>
+                /// 更新路径每一步的坐标和场景名字
+                /// </summary>
+                /// <param name="sceneName"></param>
+                /// <param name="npcMovementStep"></param>
+                private void UpdatePathOnMovementStepStack(GameScene targetScene, Stack<MovementStep> npcMovementStep)
+                {
+                    Node nextNode = targetNode;
+
+                    while (nextNode != null)
+                    {
+                        MovementStep newStep = new MovementStep();
+                        newStep.sceneName = targetScene;
+                        newStep.gridCoordinate = new Vector2Int(nextNode.GetGridPosition().x + originX, nextNode.GetGridPosition().y + originY);
+                        npcMovementStep.Push(newStep);
+                        nextNode = nextNode.GetParentNode();
+                    }
+                }
+            }*/
     }
 }

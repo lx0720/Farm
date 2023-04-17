@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class NPCFunction : MonoBehaviour
 {
-    public InventoryBag_SO shopData;
+    //public InventoryBag_SO shopData;
     private bool isOpen;
 
     private void Update()
@@ -18,14 +18,14 @@ public class NPCFunction : MonoBehaviour
     public void OpenShop()
     {
         isOpen = true;
-        EventCenter.CallBaseBagOpenEvent(SlotType.Shop, shopData);
-        EventCenter.CallUpdateGameStateEvent(GameState.Pause);
+       /* EventCenter.CallBaseBagOpenEvent(SlotType.Shop, shopData);
+        EventCenter.CallUpdateGameStateEvent(GameState.Pause);*/
     }
 
     public void CloseShop()
     {
         isOpen = false;
-        EventCenter.CallBaseBagCloseEvent(SlotType.Shop, shopData);
-        EventCenter.CallUpdateGameStateEvent(GameState.Gameplay);
+       /* EventCenter.CallBaseBagCloseEvent(SlotType.Shop, shopData);
+        EventCenter.CallUpdateGameStateEvent(GameState.Gameplay);*/
     }
 }

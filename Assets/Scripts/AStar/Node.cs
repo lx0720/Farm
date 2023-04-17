@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Farm.AStar
@@ -6,46 +7,38 @@ namespace Farm.AStar
     /// <summary>
     /// ½ÚµãÀà
     /// </summary>
-    public class Node : IComparable<Node>
+    public class Node 
     {
-        #region Fields
-        private Vector2Int nodePosition; 
-        private int gCost = 0;   
-        private int hCost = 0;   
-        private int fCost =>  gCost + hCost;  
-        private bool gridIsObstacle = false; 
-        private Node parentNode;
-        #endregion
+        public int x;
+        public int y;
+        public int gCost;   
+        public int hCost;   
+        public int fCost =>  gCost + hCost;  
+        public bool walkable; 
+        public Node parentNode;
+        public List<Node> neighborNodes;
 
-        public Node(Vector2Int pos)
+        public Node(int x,int y)
         {
-            nodePosition = pos;
-            parentNode = null;
+            this.x = x;
+            this.y = y;
+            neighborNodes = new List<Node>();
         }
 
-        #region SetsAndGets
-
-        public void SetGCost(int gCost) { this.gCost = gCost; }
-        public void SetHCost(int hCost) { this.hCost = hCost; }
-        public void SetObstacle(bool gridIsObstacle) { this.gridIsObstacle = gridIsObstacle; }
-        public void SetParentNode(Node parentNode) { this.parentNode = parentNode; }
-
-        public Vector2Int GetGridPosition() => nodePosition;
-        public int GetGCost() => gCost;
-        public int GetHCost() => hCost;
-        public int GetFCost() => fCost;
-        public bool GetIsObstacle() => gridIsObstacle;
-        public Node GetParentNode() => parentNode;
-        #endregion
-
-        public int CompareTo(Node other)
+        public void AddNeighborNode(Node node)
         {
-            int result = fCost.CompareTo(other.fCost);
-            if (result == 0)
+            if(!neighborNodes.Contains(node))
             {
-                result = hCost.CompareTo(other.hCost);
+                neighborNodes.Add(node);
             }
-            return result;
+        }
+
+        public void RemoveNeighborNode(Node node)
+        {
+            if(neighborNodes.Contains(node))
+            {
+                neighborNodes.Remove(node);
+            }
         }
     }
 }

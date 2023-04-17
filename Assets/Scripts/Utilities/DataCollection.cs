@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
+/*[System.Serializable]
 public class ItemDetails
 {
     public int itemID;
@@ -17,13 +17,20 @@ public class ItemDetails
     public int itemPrice;
     [Range(0, 1)]
     public float sellPercentage;
-}
-
+}*/
+/*
 [System.Serializable]
 public struct InventoryItem
 {
     public int itemID;
     public int itemAmount;
+}
+*/
+[System.Serializable]
+public struct SaveItemInfo
+{
+    public int itemId;
+    public int itemCount;
 }
 
 [System.Serializable]
@@ -72,29 +79,7 @@ public class SceneFurniture
     public int boxIndex;
 }
 
-[System.Serializable]
-public class TileProperty
-{
-    public Vector2Int tileCoordinate;
-    public GridType gridType;
-    public bool boolTypeValue;
-}
 
-
-[System.Serializable]
-public class TileDetails
-{
-    public int girdX, gridY;
-    public bool canDig;
-    public bool canDropItem;
-    public bool canPlaceFurniture;
-    public bool isNPCObstacle;
-    public int daysSinceDug = -1;
-    public int daysSinceWatered = -1;
-    public int seedItemID = -1;
-    public int growthDays = -1;
-    public int daysSinceLastHarvest = -1;
-}
 
 [System.Serializable]
 public class NPCPosition

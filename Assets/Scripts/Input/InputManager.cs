@@ -15,7 +15,10 @@ namespace Farm.Input
         private bool bPack;
         private bool canInput;
         private bool mouseRight;
-        private bool escBack;
+        private bool esc;
+        private bool keyI;
+        private bool keyG;
+        private bool mouseLeftDown;
 
         #endregion
 
@@ -26,8 +29,11 @@ namespace Farm.Input
         public bool GetSpaceTalk() => spaceTalk;
         public bool GetCanInput() => canInput;
         public bool GetMouseRight() => mouseRight;
-        public bool GetEscBack() => escBack;
+        public bool GetEscDown() => esc;
         public bool GetbPack() => bPack;
+        public bool GetI() => keyI;
+        public bool GetG() => keyG;
+        public bool GetMouseLeftDown() => mouseLeftDown;
 
         #endregion
 
@@ -61,7 +67,10 @@ namespace Farm.Input
             bPack = UnityEngine.Input.GetKeyDown(KeyCode.B);
             spaceTalk = UnityEngine.Input.GetKeyDown(KeyCode.Space);
             mouseRight = UnityEngine.Input.GetMouseButtonDown(1);
-            escBack = UnityEngine.Input.GetKeyDown(KeyCode.Escape);
+            esc = UnityEngine.Input.GetKeyDown(KeyCode.Escape);
+            keyI = UnityEngine.Input.GetKeyDown(KeyCode.I);
+            keyG = UnityEngine.Input.GetKeyDown(KeyCode.G);
+            mouseLeftDown = UnityEngine.Input.GetMouseButtonDown(0);
         }
 
         private void InputInit()
@@ -70,6 +79,8 @@ namespace Farm.Input
             leftShift = false;
             bPack = false;
             spaceTalk = false;
+            keyI = false;
+            keyG = false;
         }
     }
 }

@@ -12,4 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a54e736680d929409f4a987b928b592, type: 3}
   m_Name: Box_SO
   m_EditorClassIdentifier: 
-  itemList: []
+  itemList:
+  - itemID: 1001
+    itemAmount: 1

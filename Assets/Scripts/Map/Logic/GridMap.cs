@@ -5,68 +5,59 @@ using UnityEngine.Tilemaps;
 [ExecuteInEditMode]
 public class GridMap : MonoBehaviour
 {
-    public MapData_SO mapData;
-    public GridType gridType;
+    public GameMapData mapData;
+    public TileType tileType;
     private Tilemap currentTilemap;
-
     private void OnEnable()
     {
-        if (!Application.IsPlaying(this))
+        if (!IsPlaying())
         {
-            currentTilemap = GetComponent<Tilemap>();
+            currentTilemap ??= GetComponent<Tilemap>();
 
             if (mapData != null)
-                mapData.tileProperties.Clear();
+                mapData.gameTileDatas.Clear();
         }
     }
-
     private void OnDisable()
     {
-        if (!Application.IsPlaying(this))
+        if (!IsPlaying())
         {
-            currentTilemap = GetComponent<Tilemap>();
+            currentTilemap ??= GetComponent<Tilemap>();
+            UpdateTileDatas();
 
-            UpdateTileProperties();
 #if UNITY_EDITOR
             if (mapData != null)
                 EditorUtility.SetDirty(mapData);
 #endif
         }
     }
-
-    private void UpdateTileProperties()
+    private void UpdateTileDatas()
     {
         currentTilemap.CompressBounds();
-
-        if (!Application.IsPlaying(this))
+        if (!IsPlaying() && mapData != null)
         {
-            if (mapData != null)
+            Vector3Int startPos = currentTilemap.cellBounds.min;
+            Vector3Int endPos = currentTilemap.cellBounds.max;
+
+            for (int x = startPos.x; x < endPos.x; x++)
             {
-                //已绘制范围的左下角坐标
-                Vector3Int startPos = currentTilemap.cellBounds.min;
-                //已绘制范围的右上角坐标
-                Vector3Int endPos = currentTilemap.cellBounds.max;
-
-                for (int x = startPos.x; x < endPos.x; x++)
+                for (int y = startPos.y; y < endPos.y; y++)
                 {
-                    for (int y = startPos.y; y < endPos.y; y++)
+                    if (currentTilemap.GetTile(new Vector3Int(x, y, 0)) != null)
                     {
-                        TileBase tile = currentTilemap.GetTile(new Vector3Int(x, y, 0));
-
-                        if (tile != null)
+                        GameTileData tileData = new GameTileData
                         {
-                            TileProperty newTile = new TileProperty
-                            {
-                                tileCoordinate = new Vector2Int(x, y),
-                                gridType = this.gridType,
-                                boolTypeValue = true
-                            };
-
-                            mapData.tileProperties.Add(newTile);
-                        }
+                            tileCoordinate = new Vector2Int(x, y),
+                            tileType = tileType,
+                        };
+                        mapData.gameTileDatas.Add(tileData);
                     }
                 }
             }
         }
+    }
+    public bool IsPlaying()
+    {
+        return Application.IsPlaying(this);
     }
 }

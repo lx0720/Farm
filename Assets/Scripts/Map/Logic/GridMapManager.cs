@@ -1,5 +1,5 @@
+using System;
 using System.Collections.Generic;
-using Farm.CropPlant;
 using Farm.Save;
 using Farm.Tool;
 using UnityEngine;
@@ -7,429 +7,177 @@ using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
 namespace Farm.Map
 {
-    public class GridMapManager : MonoSingleton<GridMapManager>,ISaveable
+    public class GridMapManager : MonoSingleton<GridMapManager>
     {
-        [SerializeField,Header("dig图片")]private RuleTile digTile;
-        [SerializeField,Header("water图片")]private RuleTile waterTile;
-        private Tilemap digTilemap;
-        private Tilemap waterTilemap;
+        [SerializeField] private List<GameMapData> gameMapDatas;
+        [SerializeField] private TileBase digTileBase;
+        [SerializeField] private TileBase waterTileBase;
+        private Tilemap digTileMap;
+        private Tilemap waterTileMap;
+        private Dictionary<string, TileDetails> allTileDetailsDict;
+        private Dictionary<string, TileDetails> handOnTileDetailsDict;
 
-        [Header("所有的Map数据")]
-        [SerializeField]private List<MapData_SO> mapDataList;
+        private Dictionary<GameScene, bool> sceneFirstLoadDict;
 
-        private Season currentSeason;
+        protected override void Awake()
+        {
+            base.Awake();
+            allTileDetailsDict = new Dictionary<string, TileDetails>();
+            handOnTileDetailsDict = new Dictionary<string, TileDetails>();
+            sceneFirstLoadDict = new Dictionary<GameScene, bool>();
 
-
-        private Dictionary<string, TileDetails> tileDetailsDict = new Dictionary<string, TileDetails>();
-
-        private Dictionary<GameScene, bool> firstLoadDict = new Dictionary<GameScene, bool>();
-
-        private List<ReapItem> itemsInRadius;
-
-        private Grid currentGrid;
-
-        public string GUID => GetComponent<DataGUID>().guid;
+            for(int i=0;i<gameMapDatas.Count;i++)
+            {
+                if (!sceneFirstLoadDict.ContainsKey(gameMapDatas[i].gameScene))
+                    sceneFirstLoadDict.Add(gameMapDatas[i].gameScene, true);
+            }
+        }
 
         private void OnEnable()
         {
-           EventCenter.ExecuteActionAfterAnimation += OnExecuteActionAfterAnimation;
-           EventCenter.AfterSceneLoadedEvent += OnAfterSceneLoadedEvent;
-           EventCenter.GameDayEvent += OnGameDayEvent;
-           EventCenter.RefreshCurrentMap += RefreshMap;
+            EventManager.AddEventListener<GameScene>(ConstString.AfterSceneLoadEvent, OnAfterSceneLoad);
+            EventManager.AddEventListener(ConstString.InvokeEveryDayEvent,OnEveryDayUpdate);
+            EventManager.AddEventListener(ConstString.BeforeSceneLoadEvent, OnBeforeSceneLoad);
         }
-
         private void OnDisable()
         {
-           EventCenter.ExecuteActionAfterAnimation -= OnExecuteActionAfterAnimation;
-           EventCenter.AfterSceneLoadedEvent -= OnAfterSceneLoadedEvent;
-           EventCenter.GameDayEvent -= OnGameDayEvent;
-           EventCenter.RefreshCurrentMap -= RefreshMap;
+            EventManager.RemoveEventListener<GameScene>(ConstString.AfterSceneLoadEvent, OnAfterSceneLoad);
+            EventManager.RemoveEventListener(ConstString.InvokeEveryDayEvent,OnEveryDayUpdate);
+            EventManager.RemoveEventListener(ConstString.BeforeSceneLoadEvent, OnBeforeSceneLoad);
         }
 
-
-        private void Start()
+        private void OnBeforeSceneLoad()
         {
-            ISaveable saveable = this;
-            saveable.RegisterSaveable();
 
-
-            foreach (var mapData in mapDataList)
-            {
-                firstLoadDict.Add(mapData.gameScene, true);
-                InitTileDetailsDict(mapData);
-            }
         }
 
-        private void OnAfterSceneLoadedEvent()
+        private void OnAfterSceneLoad(GameScene targetScene)
         {
-            currentGrid = FindObjectOfType<Grid>();
-            digTilemap = GameObject.FindGameObjectWithTag("Dig").GetComponent<Tilemap>();
-            waterTilemap = GameObject.FindGameObjectWithTag("Water").GetComponent<Tilemap>();
-
-           /* if (firstLoadDict[SceneManager.GetActiveScene().name])
-            {
-               EventCenter.CallGenerateCropEvent();
-                firstLoadDict[SceneManager.GetActiveScene().name] = false;
-            }*/
-            RefreshMap();
+            digTileMap = GameObject.FindGameObjectWithTag(ConstString.DigTileMapTag).GetComponent<Tilemap>();
+            waterTileMap = GameObject.FindGameObjectWithTag(ConstString.WaterTileMapTag).GetComponent<Tilemap>();
+            GameMapData mapData = gameMapDatas.Find(i => i.gameScene == targetScene);
+            if(mapData!=null)
+                InitMapData(mapData);
         }
 
-
-        /// <summary>
-        /// 游戏一天结束
-        /// </summary>
-        /// <param name="day"></param>
-        /// <param name="season"></param>
-        private void OnGameDayEvent(int day, Season season)
+        private void OnEveryDayUpdate()
         {
-            currentSeason = season;
-
-            foreach (var tile in tileDetailsDict)
+            foreach (TileDetails tileDetails in handOnTileDetailsDict.Values)
             {
-                if (tile.Value.daysSinceWatered > -1)
+                if (tileDetails.seedId != -1)
+                    tileDetails.growthDays++;
+                if (tileDetails.dugDaysCount > -1)
+                    tileDetails.dugDaysCount++;
+                if (tileDetails.waterDaysCount > -1)
+                    tileDetails.waterDaysCount++;
+                //到3天不种就移除这块土地
+                if(tileDetails.seedId == -1 && tileDetails.dugDaysCount >= 3)
                 {
-                    tile.Value.daysSinceWatered = -1;
+                    handOnTileDetailsDict.Remove(KeyHelper.Instance.GetKey(tileDetails.tileX,tileDetails.tileY,tileDetails.gameScene));
                 }
-                if (tile.Value.daysSinceDug > -1)
+                //到3天都不浇水，种子死去
+                if(tileDetails.seedId!=-1 && tileDetails.waterDaysCount ==-1 && tileDetails.growthDays >=3)
                 {
-                    tile.Value.daysSinceDug++;
-                }
-                //时间长于5填不种就消失
-                if (tile.Value.daysSinceDug > 5 && tile.Value.seedItemID == -1)
-                {
-                    tile.Value.daysSinceDug = -1;
-                    tile.Value.canDig = true;
-                    tile.Value.growthDays = -1;
-                }
-                if (tile.Value.seedItemID != -1)
-                {
-                    tile.Value.growthDays++;
+                    tileDetails.seedId = -1;
+                    tileDetails.growthDays = -1;
+                    tileDetails.dugDaysCount = 0;
                 }
             }
-
-            RefreshMap();
+            LoadMapData(GameTools.StringToEnum(SceneManager.GetSceneAt(SceneManager.sceneCount-1).name));
         }
-
-
-        /// <summary>
-        /// 初始化TileDetails
-        /// </summary>
-        /// <param name="mapData">各场景地图</param>
-        private void InitTileDetailsDict(MapData_SO mapData)
+        private void InitMapData(GameMapData mapData)
         {
-            foreach (TileProperty tileProperty in mapData.tileProperties)
+            if (sceneFirstLoadDict[mapData.gameScene])
             {
-                TileDetails tileDetails = new TileDetails
+                for (int i = 0; i < mapData.gameTileDatas.Count; i++)
                 {
-                    girdX = tileProperty.tileCoordinate.x,
-                    gridY = tileProperty.tileCoordinate.y
-                };
-                string key = KeyHelper.Instance.GetKey(tileDetails.girdX, tileDetails.gridY, mapData.gameScene);
-
-                if (GetTileDetails(key) != null)
-                {
-                    tileDetails = GetTileDetails(key);
-                }
-
-                switch (tileProperty.gridType)
-                {
-                    case GridType.Diggable:
-                        tileDetails.canDig = tileProperty.boolTypeValue;
-                        break;
-                    case GridType.DropItem:
-                        tileDetails.canDropItem = tileProperty.boolTypeValue;
-                        break;
-                    case GridType.PlaceFurniture:
-                        tileDetails.canPlaceFurniture = tileProperty.boolTypeValue;
-                        break;
-                    case GridType.NPCObstacle:
-                        tileDetails.isNPCObstacle = tileProperty.boolTypeValue;
-                        break;
-                }
-
-                if (GetTileDetails(key) != null)
-                    tileDetailsDict[key] = tileDetails;
-                else
-                    tileDetailsDict.Add(key, tileDetails);
-            }
-        }
-
-
-        /// <summary>
-        /// 通过key得到TileDetails
-        /// </summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public TileDetails GetTileDetails(string key)
-        {
-            if (tileDetailsDict.ContainsKey(key))
-            {
-                //Debug.Log("字典存在");
-                return tileDetailsDict[key];
-            }
-            else
-            {
-                //Debug.Log("没找到屋头");
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// 得到TileDetails的鼠标位置
-        /// </summary>
-        /// <param name="mouseGridPos">鼠标的Grid位置</param>
-        /// <returns></returns>
-        public TileDetails GetTileDetailsOnMousePosition(Vector3Int mouseGridPos)
-        {
-            string key = KeyHelper.Instance.GetKey(mouseGridPos.x, mouseGridPos.y, GameTools.StringToEnum(SceneManager.GetActiveScene().name));
-            if (GetTileDetails(key) != null) Debug.Log("查找成功");
-            else Debug.Log("查找失败！");
-            return GetTileDetails(key);
-        }
-
-
-        /// <summary>
-        /// 行为结束执行动画
-        /// </summary>
-        /// <param name="mouseWorldPos">鼠标位置</param>
-        /// <param name="itemDetails">物品信息</param>
-        private void OnExecuteActionAfterAnimation(Vector3 mouseWorldPos, ItemDetails itemDetails)
-        {
-            var mouseGridPos = currentGrid.WorldToCell(mouseWorldPos);
-            var currentTile = GetTileDetailsOnMousePosition(mouseGridPos);
-
-            if (currentTile != null)
-            {
-                Crop currentCrop = GetCropObject(mouseWorldPos);
-
-                //通过物品的类型来判断行为
-                switch (itemDetails.itemType)
-                {
-                    case ItemType.Seed:
-                       EventCenter.CallPlantSeedEvent(itemDetails.itemID, currentTile);
-                       EventCenter.CallDropItemEvent(itemDetails.itemID, mouseWorldPos, itemDetails.itemType);
-                       EventCenter.CallPlaySoundEvent(SoundName.Plant);
-                        break;
-                    case ItemType.Commodity:
-                       EventCenter.CallDropItemEvent(itemDetails.itemID, mouseWorldPos, itemDetails.itemType);
-                        break;
-                    case ItemType.HoeTool:
-                        SetDigGround(currentTile);
-                        currentTile.daysSinceDug = 0;
-                        currentTile.canDig = false;
-                        currentTile.canDropItem = false;
-                        //播放声音
-                       EventCenter.CallPlaySoundEvent(SoundName.Hoe);
-                        break;
-                    case ItemType.WaterTool:
-                        SetWaterGround(currentTile);
-                        currentTile.daysSinceWatered = 0;
-                        //浇水声音
-                       EventCenter.CallPlaySoundEvent(SoundName.Water);
-                        break;
-                    case ItemType.BreakTool:
-                    case ItemType.ChopTool:
-                        
-                        currentCrop?.ProcessToolAction(itemDetails, currentCrop.tileDetails);
-                        break;
-                    case ItemType.CollectTool:
-                        currentCrop.ProcessToolAction(itemDetails, currentTile);
-                       EventCenter.CallPlaySoundEvent(SoundName.Basket);
-                        break;
-                    case ItemType.ReapTool:
-                        var reapCount = 0;
-                        for (int i = 0; i < itemsInRadius.Count; i++)
-                        {
-                           EventCenter.CallParticleEffectEvent(ParticleEffectType.ReapableScenery, itemsInRadius[i].transform.position + Vector3.up);
-                            itemsInRadius[i].SpawnHarvestItems();
-                            Destroy(itemsInRadius[i].gameObject);
-                            reapCount++;
-                            if (reapCount >= Settings.reapAmount)
-                                break;
-                        }
-                       EventCenter.CallPlaySoundEvent(SoundName.Reap);
-                        break;
-
-                    case ItemType.Furniture:
-                       EventCenter.CallBuildFurnitureEvent(itemDetails.itemID, mouseWorldPos);
-                        break;
-                }
-
-                UpdateTileDetails(currentTile);
-            }
-        }
-
-        /// <summary>
-        /// 得到Grid物体
-        /// </summary>
-        /// <param name="mouseWorldPos"></param>
-        /// <returns></returns>
-        public Crop GetCropObject(Vector3 mouseWorldPos)
-        {
-            Collider2D[] colliders = Physics2D.OverlapPointAll(mouseWorldPos);
-
-            Crop currentCrop = null;
-
-            for (int i = 0; i < colliders.Length; i++)
-            {
-                if (colliders[i].GetComponent<Crop>())
-                    currentCrop = colliders[i].GetComponent<Crop>();
-            }
-            return currentCrop;
-        }
-
-
-        /// <summary>
-        /// 在范围内存在可以收割的物体
-        /// </summary>
-        /// <param name="tool">工具</param>
-        /// <returns></returns>
-        public bool HaveReapableItemsInRadius(Vector3 mouseWorldPos, ItemDetails tool)
-        {
-            itemsInRadius = new List<ReapItem>();
-
-            Collider2D[] colliders = new Collider2D[20];
-
-            Physics2D.OverlapCircleNonAlloc(mouseWorldPos, tool.itemUseRadius, colliders);
-
-            if (colliders.Length > 0)
-            {
-                for (int i = 0; i < colliders.Length; i++)
-                {
-                    if (colliders[i] != null)
+                    int x = mapData.gameTileDatas[i].tileCoordinate.x;
+                    int y = mapData.gameTileDatas[i].tileCoordinate.y;
+                    string tileKey = KeyHelper.Instance.GetKey(x, y, mapData.gameScene);
+                    if (!allTileDetailsDict.ContainsKey(tileKey))
                     {
-                        if (colliders[i].GetComponent<ReapItem>())
+                        TileDetails tileDetails = new TileDetails()
                         {
-                            var item = colliders[i].GetComponent<ReapItem>();
-                            itemsInRadius.Add(item);
-                        }
+                            tileX = x,
+                            tileY = y
+                        };
+                        if (mapData.gameTileDatas[i].tileType == TileType.CanDig)
+                            tileDetails.canDig = true;
+                        if (mapData.gameTileDatas[i].tileType == TileType.CanDrop)
+                            tileDetails.canDrop = true;
+                        if (mapData.gameTileDatas[i].tileType == TileType.CanPlace)
+                            tileDetails.canPlace = true;
+                        if (mapData.gameTileDatas[i].tileType == TileType.CantWalk)
+                            tileDetails.cantWalk = true;
+                        allTileDetailsDict.Add(tileKey, tileDetails);
                     }
+                    sceneFirstLoadDict[mapData.gameScene] = false;
                 }
-            }
-            return itemsInRadius.Count > 0;
-        }
-
-        /// <summary>
-        /// 设置挖坑
-        /// </summary>
-        /// <param name="tile"></param>
-        private void SetDigGround(TileDetails tile)
-        {
-            Vector3Int pos = new Vector3Int(tile.girdX, tile.gridY, 0);
-            if (digTilemap != null)
-                digTilemap.SetTile(pos, digTile);
-        }
-
-        /// <summary>
-        /// 设置浇水
-        /// </summary>
-        /// <param name="tile"></param>
-        private void SetWaterGround(TileDetails tile)
-        {
-            Vector3Int pos = new Vector3Int(tile.girdX, tile.gridY, 0);
-            if (waterTilemap != null)
-                waterTilemap.SetTile(pos, waterTile);
-        }
-
-        /// <summary>
-        /// 更新Tile的信息
-        /// </summary>
-        /// <param name="tileDetails"></param>
-        public void UpdateTileDetails(TileDetails tileDetails)
-        {
-            string key = tileDetails.girdX + "x" + tileDetails.gridY + "y" + SceneManager.GetActiveScene().name;
-            if (tileDetailsDict.ContainsKey(key))
-            {
-                tileDetailsDict[key] = tileDetails;
             }
             else
             {
-                tileDetailsDict.Add(key, tileDetails);
+                LoadMapData(mapData.gameScene);
             }
         }
 
-
-        /// <summary>
-        /// 刷新地图
-        /// </summary>
-        private void RefreshMap()
+        private void LoadMapData(GameScene targetScene)
         {
-            if (digTilemap != null)
-                digTilemap.ClearAllTiles();
-            if (waterTilemap != null)
-                waterTilemap.ClearAllTiles();
-
-            foreach (var crop in FindObjectsOfType<Crop>())
+            foreach(TileDetails tileDetails in handOnTileDetailsDict.Values)
             {
-                Destroy(crop.gameObject);
-            }
-
-            DisplayMap(SceneManager.GetSceneAt(SceneManager.sceneCount-1).name);
-        }
-
-
-        /// <summary>
-        /// 展示当前场景地图的信息
-        /// </summary>
-        /// <param name="sceneName">场景名字</param>
-        private void DisplayMap(string sceneName)
-        {
-            foreach (var tile in tileDetailsDict)
-            {
-                var key = tile.Key;
-                var tileDetails = tile.Value;
-
-                if (key.Contains(sceneName))
+                if(tileDetails.gameScene == targetScene)
                 {
-                    if (tileDetails.daysSinceDug > -1)
-                        SetDigGround(tileDetails);
-                    if (tileDetails.daysSinceWatered > -1)
-                        SetWaterGround(tileDetails);
-                    if (tileDetails.seedItemID > -1)
-                       EventCenter.CallPlantSeedEvent(tileDetails.seedItemID, tileDetails);
+                    if (tileDetails.dugDaysCount > -1)
+                        SetDigTilBase(tileDetails);
+                    if (tileDetails.waterDaysCount > -1)
+                        SetWaterTilBase(tileDetails);
                 }
             }
         }
-        /// <summary>
-        /// 获取地图尺寸
-        /// </summary>
-        /// <param name="gameScene"></param>
-        /// <param name="gridDimensions"></param>
-        /// <param name="gridOrigin"></param>
-        /// <returns></returns>
-        public bool GetGridSize(GameScene gameScene, out Vector2Int gridDimensions, out Vector2Int gridOrigin)
-        {
-            gridDimensions = Vector2Int.zero;
-            gridOrigin = Vector2Int.zero;
 
-            foreach (var mapData in mapDataList)
+        public TileDetails GetTileDetails(Vector2Int position, GameScene targetScene)
+        {
+            string tileKey = KeyHelper.Instance.GetKey(position.x, position.y, targetScene);
+            if (allTileDetailsDict.ContainsKey(tileKey))
             {
-                if (mapData.gameScene == gameScene)
-                {
-                    gridDimensions.x = mapData.gridWidth;
-                    gridDimensions.y = mapData.gridHeight;
-
-                    gridOrigin.x = mapData.originX;
-                    gridOrigin.y = mapData.originY;
-
-                    return true;
-                }
+                return allTileDetailsDict[tileKey];
             }
-            return false;
-        } 
-
-        public GameSaveData GenerateSaveData()
-        {
-            GameSaveData saveData = new GameSaveData();
-            saveData.tileDetailsDict = this.tileDetailsDict;
-            saveData.firstLoadDict = this.firstLoadDict;
-            return saveData;
+            return null;
         }
 
-        public void RestoreData(GameSaveData saveData)
+        public void SetDigTilBase(TileDetails tileDetails)
         {
-            this.tileDetailsDict = saveData.tileDetailsDict;
-            this.firstLoadDict = saveData.firstLoadDict;
+            if (digTileMap == null)
+                return;
+            Vector3Int coordinate = new Vector3Int(tileDetails.tileX, tileDetails.tileY, 0);
+            digTileMap.SetTile(coordinate, digTileBase);
+            string tileKey = KeyHelper.Instance.GetKey(tileDetails.tileX, tileDetails.tileY, GameTools.StringToEnum(SceneManager.GetActiveScene().ToString()));
+            if (!handOnTileDetailsDict.ContainsKey(tileKey))
+            {
+                handOnTileDetailsDict.Add(tileKey, tileDetails);
+            }
+        }
+        public void SetWaterTilBase(TileDetails tileDetails)
+        {
+            if (waterTileMap == null)
+                return;
+            Vector3Int coordinate = new Vector3Int(tileDetails.tileX, tileDetails.tileY, 0);
+            waterTileMap.SetTile(coordinate, waterTileBase);
+            string tileKey = KeyHelper.Instance.GetKey(tileDetails.tileX, tileDetails.tileY, GameTools.StringToEnum(SceneManager.GetActiveScene().ToString()));
+            if (!handOnTileDetailsDict.ContainsKey(tileKey))
+            {
+                handOnTileDetailsDict.Add(tileKey, tileDetails);
+            }
+        }
+
+        public Vector2Int GetMapSize(GameScene targetScene)
+        {
+            GameMapData mapData = gameMapDatas.Find(i => i.gameScene == targetScene);
+            return mapData.mapSize;
+        }
+        public Vector2Int GetMapOriginPosition(GameScene targetScene)
+        {
+            GameMapData mapData = gameMapDatas.Find(i => i.gameScene == targetScene);
+            return mapData.mapOriginPosition;
         }
     }
 }

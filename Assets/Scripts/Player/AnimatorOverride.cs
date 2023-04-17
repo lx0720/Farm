@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using Farm.Inventory;
 using UnityEngine;
 
 public class AnimatorOverride : MonoBehaviour
@@ -26,25 +25,25 @@ public class AnimatorOverride : MonoBehaviour
 
     private void OnEnable()
     {
-        EventCenter.ItemSelectedEvent += OnItemSelectedEvent;
+       /* EventCenter.ItemSelectedEvent += OnItemSelectedEvent;
         EventCenter.BeforeSceneUnloadEvent += OnBeforSceneUnloadEvent;
-        EventCenter.HarvestAtPlayerPosition += OnHarvestAtPlayerPosition;
+        EventCenter.HarvestAtPlayerPosition += OnHarvestAtPlayerPosition;*/
     }
 
     private void OnDisable()
     {
-        EventCenter.ItemSelectedEvent -= OnItemSelectedEvent;
+       /* EventCenter.ItemSelectedEvent -= OnItemSelectedEvent;
         EventCenter.BeforeSceneUnloadEvent -= OnBeforSceneUnloadEvent;
-        EventCenter.HarvestAtPlayerPosition -= OnHarvestAtPlayerPosition;
+        EventCenter.HarvestAtPlayerPosition -= OnHarvestAtPlayerPosition;*/
     }
 
     private void OnHarvestAtPlayerPosition(int ID)
     {
-        Sprite itemSprite = InventoryManager.Instance.GetItemDetails(ID).itemOnWorldSprite;
-        if (!holdItem.gameObject.activeInHierarchy)
+        //Sprite itemSprite = InventoryManager.Instance.GetItemDetails(ID).itemOnWorldSprite;
+        /*if (!holdItem.gameObject.activeInHierarchy)
         {
             StartCoroutine(ShowItem(itemSprite));
-        }
+        }*/
 
     }
 
@@ -87,7 +86,7 @@ public class AnimatorOverride : MonoBehaviour
         {
             if (currentType == PartType.Carry)
             {
-                holdItem.sprite = itemDetails.itemOnWorldSprite;
+                holdItem.sprite = itemDetails.itemSprite;
                 holdItem.enabled = true;
             }
             else

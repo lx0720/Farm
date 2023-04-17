@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Farm.Input;
 using Farm.Tool;
 using Farm.Save;
 using UnityEngine;
@@ -7,163 +8,163 @@ using UnityEngine.SceneManagement;
 
 namespace Farm.Transition
 {
-    public class TransitionManager : MonoSingleton<TransitionManager>,ISaveable
+    public class TransitionManager : MonoSingleton<TransitionManager>,ISaveLoad
     {
-        [SceneName]
-        public string startSceneName = string.Empty;
+        private GameScene startSceneName = GameScene.YardScene;
         private CanvasGroup fadeCanvasGroup;
-        private bool isFade;
+        private float sliderValue;
 
-        public string GUID => GetComponent<DataGUID>().guid;
+        public float SliderValue => sliderValue;
 
         protected override void Awake()
         {
             base.Awake();
             Screen.SetResolution(1920, 1080, FullScreenMode.Windowed, 0);
-            SceneManager.LoadScene("UI", LoadSceneMode.Additive);
+            SceneManager.LoadScene("UIScene", LoadSceneMode.Additive);
+            RegisterInterface();
         }
 
         private void OnEnable()
         {
-            EventCenter.TransitionEvent += OnTransitionEvent;
-            EventCenter.StartNewGameEvent += OnStartNewGameEvent;
-            EventCenter.EndGameEvent += OnEndGameEvent;
+            //EventCenter.TransitionEvent += OnTransitionEvent;
+            //EventCenter.EndGameEvent += OnEndGameEvent;
+            EventManager.AddEventListener<GameScene, Vector3>(ConstString.TransitionSceneEvent, OnTransitionEvent);
+            EventManager.AddEventListener(ConstString.BackToMenuEvent, OnBackToMenu);
+            EventManager.AddEventListener(ConstString.EndGameEvent, OnEndGameEvent);
+            EventManager.AddEventListener<int>(ConstString.StartNewGameEvent, OnStartNewGame);
         }
 
         private void OnDisable()
         {
-            EventCenter.TransitionEvent -= OnTransitionEvent;
-            EventCenter.StartNewGameEvent -= OnStartNewGameEvent;
-            EventCenter.EndGameEvent -= OnEndGameEvent;
+            // EventCenter.TransitionEvent -= OnTransitionEvent;
+            // EventCenter.EndGameEvent -= OnEndGameEvent;
+            EventManager.RemoveEventListener<GameScene, Vector3>(ConstString.TransitionSceneEvent, OnTransitionEvent);
+            EventManager.RemoveEventListener(ConstString.BackToMenuEvent, OnBackToMenu);
+            EventManager.RemoveEventListener(ConstString.EndGameEvent, OnEndGameEvent);
+            EventManager.RemoveEventListener<int>(ConstString.StartNewGameEvent, OnStartNewGame); 
         }
 
         private void OnEndGameEvent()
         {
-            StartCoroutine(UnloadScene());
+            
         }
 
-        private void OnStartNewGameEvent(int obj)
+        private void OnStartNewGame(int obj)
         {
-            StartCoroutine(LoadSceneSetActive(startSceneName));
+            StartCoroutine(LoadNewGame());
         }
 
 
         private void Start()
         {
-            ISaveable saveable = this;
-            saveable.RegisterSaveable();
-
             fadeCanvasGroup = FindObjectOfType<CanvasGroup>();
         }
 
 
-        private void OnTransitionEvent(string sceneToGo, Vector3 positionToGo)
+        private void OnTransitionEvent(GameScene transitionScene, Vector3 positionToGo)
         {
-            if (!isFade)
-                StartCoroutine(Transition(sceneToGo, positionToGo));
+            StartCoroutine(LoadAnotherGame(transitionScene));
         }
 
-        /// <summary>
-        /// 场景切换
-        /// </summary>
-        /// <param name="sceneName">目标场景</param>
-        /// <param name="targetPosition">目标位置</param>
-        /// <returns></returns>
-        private IEnumerator Transition(string sceneName, Vector3 targetPosition)
+        private void OnBackToMenu()
         {
-            EventCenter.CallBeforeSceneUnloadEvent();
-            yield return Fade(1);
-
-            yield return SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene());
-
-            yield return LoadSceneSetActive(sceneName);
-            //移动人物坐标
-            EventCenter.CallMoveToPosition(targetPosition);
-            EventCenter.CallAfterSceneLoadedEvent();
-            yield return Fade(0);
+            StartCoroutine(UnLoadSceneAsync());
         }
 
-        /// <summary>
-        /// 加载场景并设置为激活
-        /// </summary>
-        /// <param name="sceneName">场景名</param>
-        /// <returns></returns>
-        private IEnumerator LoadSceneSetActive(string sceneName)
+        public IEnumerator LoadNewGame()
         {
-            yield return SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
-
-            Scene newScene = SceneManager.GetSceneAt(SceneManager.sceneCount - 1);
-
-            EventCenter.CallAfterSceneLoadedEvent();
-
-            SceneManager.SetActiveScene(newScene);
+            yield return LoadSceneAsync();
         }
-
-        /// <summary>
-        /// 淡入淡出场景
-        /// </summary>
-        /// <param name="targetAlpha">1是黑，0是透明</param>
-        /// <returns></returns>
-        private IEnumerator Fade(float targetAlpha)
+        public IEnumerator LoadSaveGame(GameScene targetScene)
         {
-            isFade = true;
+            yield return LoadSceneAsync(targetScene);
+        }
+        public IEnumerator LoadAnotherGame(GameScene targetScene)
+        {
+            EventManager.InvokeEventListener(ConstString.BeforeSceneLoadEvent);
+            yield return SceneManager.UnloadSceneAsync(GameTools.GetCurrentSceneEnum().ToString());
+            yield return LoadSceneAsync(targetScene);
+            EventManager.InvokeEventListener(ConstString.AfterSceneLoadEvent, targetScene);
+        }
+        public IEnumerator LoadSceneAsync()
+        {
+            EventManager.InvokeEventListener(ConstString.BeforeSceneLoadEvent);
+            AsyncOperation asyncOperation = SceneManager.LoadSceneAsync(startSceneName.ToString(), LoadSceneMode.Additive);
+            asyncOperation.allowSceneActivation = false;
 
-            fadeCanvasGroup.blocksRaycasts = true;
-
-            float speed = Mathf.Abs(fadeCanvasGroup.alpha - targetAlpha) / Settings.fadeDuration;
-
-            while (!Mathf.Approximately(fadeCanvasGroup.alpha, targetAlpha))
+            while (!asyncOperation.isDone)
             {
-                fadeCanvasGroup.alpha = Mathf.MoveTowards(fadeCanvasGroup.alpha, targetAlpha, speed * Time.deltaTime);
+                sliderValue = asyncOperation.progress;
+                if (asyncOperation.progress >= 0.9f)
+                {
+                    sliderValue = 1;
+
+                    if (UnityEngine.Input.anyKey)
+                    {
+                        asyncOperation.allowSceneActivation = true;
+                    }
+                }
                 yield return null;
             }
-
-            fadeCanvasGroup.blocksRaycasts = false;
-
-            isFade = false;
+            EventManager.InvokeEventListener(ConstString.AfterSceneLoadEvent, startSceneName);
         }
-
-        /// <summary>
-        /// 加载场景(如果当前场景是最初的场景，那么就需要卸载当前的场景，异步加载目标场景)
-        /// </summary>
-        /// <param name="sceneName"></param>
-        /// <returns></returns>
-        private IEnumerator LoadSaveDataScene(GameScene targetScene)
+        public IEnumerator LoadSceneAsync(GameScene targetScene)
         {
-            yield return Fade(1f);
-            if (SceneManager.GetActiveScene().name != "InitialScene")    
+            EventManager.InvokeEventListener(ConstString.BeforeSceneLoadEvent);
+            AsyncOperation asyncOperation = SceneManager.LoadSceneAsync(targetScene.ToString(), LoadSceneMode.Additive);
+            asyncOperation.allowSceneActivation = false;
+
+            while (!asyncOperation.isDone)
             {
-                EventCenter.CallBeforeSceneUnloadEvent();
-                yield return SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene().buildIndex);
+                sliderValue = asyncOperation.progress;
+                if (asyncOperation.progress >= 0.9f)
+                {
+                    sliderValue = 1;
+
+                    if (UnityEngine.Input.anyKey)
+                    {
+                        asyncOperation.allowSceneActivation = true;
+                    }
+                }
+                yield return null;
             }
-
-            yield return LoadSceneSetActive(targetScene.ToString());
-            EventCenter.CallAfterSceneLoadedEvent();
-            yield return Fade(0);
+            EventManager.InvokeEventListener(ConstString.AfterSceneLoadEvent, targetScene);
         }
 
-
-        private IEnumerator UnloadScene()
+        public IEnumerator UnLoadSceneAsync()
         {
-            EventCenter.CallBeforeSceneUnloadEvent();
-            yield return Fade(1f);
-            yield return SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene().buildIndex);
-            yield return Fade(0);
+            EventManager.InvokeEventListener(ConstString.EndGameEvent);
+            yield return SceneManager.UnloadSceneAsync(GameTools.GetCurrentSceneEnum().ToString());
+        }
+       
+
+        private void LoadGameSaveScene(GameScene targetScene)
+        {
+            if(GameTools.GetCurrentSceneEnum() == GameScene.UIScene)
+            {
+                StartCoroutine(LoadSaveGame(targetScene));
+            }
         }
 
+        public string GetGuid() => GetComponent<Guid>().ModuleGuid;
 
 
-        public GameSaveData GenerateSaveData()
+        public GameSaveData SaveGameData()
         {
             GameSaveData saveData = new GameSaveData();
-            saveData.dataSceneName = GameTools.StringToEnum(SceneManager.GetActiveScene().name);
-
+            saveData.saveGameScene = GameTools.GetCurrentSceneEnum();
+            saveData.moduleName = "Transition";
             return saveData;
         }
 
-        public void RestoreData(GameSaveData saveData)
+        public void LoadGameData(GameSaveData gameSaveData)
         {
-            StartCoroutine(LoadSaveDataScene(saveData.dataSceneName));
+            LoadGameSaveScene(gameSaveData.saveGameScene);
+        }
+
+        public void RegisterInterface()
+        {
+            SaveLoadManager.Instance.RegisterInterface(this);
         }
     }
 }

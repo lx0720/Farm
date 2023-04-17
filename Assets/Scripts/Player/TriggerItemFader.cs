@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class TriggerItemFader : MonoBehaviour
 {
-    private void OnTriggerEnter2D(Collider2D other)
+   /* private void OnTriggerEnter2D(Collider2D other)
     {
-        ItemFader[] faders = other.GetComponentsInChildren<ItemFader>();
+        //ItemFader[] faders = other.GetComponentsInChildren<ItemFader>();
 
         if (faders.Length > 0)
         {
@@ -19,7 +19,7 @@ public class TriggerItemFader : MonoBehaviour
 
     private void OnTriggerExit2D(Collider2D other)
     {
-        ItemFader[] faders = other.GetComponentsInChildren<ItemFader>();
+        //ItemFader[] faders = other.GetComponentsInChildren<ItemFader>();
 
         if (faders.Length > 0)
         {
@@ -28,5 +28,5 @@ public class TriggerItemFader : MonoBehaviour
                 item.FadeIn();
             }
         }
-    }
+    }*/
 }

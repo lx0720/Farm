@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine.SceneManagement;
 
 namespace Farm.Tool
 {
@@ -18,6 +19,11 @@ namespace Farm.Tool
                 "HomeScene" => GameScene.HomeScene,
                 _ => GameScene.ErrorScene
             };
+        }
+
+        public static GameScene GetCurrentSceneEnum()
+        {
+            return StringToEnum(SceneManager.GetSceneAt(SceneManager.sceneCount - 1).name);
         }
     }
 }

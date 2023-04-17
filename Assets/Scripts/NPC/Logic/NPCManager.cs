@@ -1,3 +1,4 @@
+using Farm.Tool;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -18,12 +19,14 @@ public class NPCManager : MonoSingleton<NPCManager>
 
     private void OnEnable()
     {
-        EventCenter.StartNewGameEvent += OnStartNewGameEvent;
+        //EventCenter.StartNewGameEvent += OnStartNewGameEvent;
+        EventManager.AddEventListener<int>(ConstString.StartNewGameEvent,OnStartNewGameEvent);
     }
 
     private void OnDisable()
     {
-        EventCenter.StartNewGameEvent -= OnStartNewGameEvent;
+        //EventCenter.StartNewGameEvent -= OnStartNewGameEvent;
+        EventManager.RemoveEventListener<int>(ConstString.StartNewGameEvent, OnStartNewGameEvent);
     }
 
     private void OnStartNewGameEvent(int obj)

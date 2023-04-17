@@ -34,4 +34,13 @@ public class Settings
 
     public static Vector3 GameStartPlayerPos = new Vector3(1f, 10f, 0);
     public const int playerStartMoney = 100;
+    /// <summary>
+    /// ----------------------------------------------
+    /// </summary>
+    public const float timeInterval = 0.01f;
+    public const float minuteInterval = 60;
+    public const float hourInterval = 24;
+    public const float dayInterval = 30;
+    public const float monthInterval = 12;
+    public const float hourToAngle = 15;
 }
