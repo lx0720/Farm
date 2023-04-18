@@ -9,7 +9,7 @@ public class InventoryManager : MonoSingleton<InventoryManager>
     private int playerMoney = 100;
     [SerializeField]private InventoryItemDataListSO inventoryItemDataList;
     [SerializeField]private Transform itemParent;
-    private int chooseItemId;
+    private int selectedItemId;
 
 
     protected override void Awake()
@@ -24,14 +24,12 @@ public class InventoryManager : MonoSingleton<InventoryManager>
     
     private void OnEnable()
     {
-        EventManager.AddEventListener<int>(ConstString.UpdateHightLightEvent, OnShowHighLight);
         EventManager.AddEventListener<int, int>(ConstString.EndDragItemEvent, OnEndDragItem);
         EventManager.AddEventListener<GameScene>(ConstString.AfterSceneLoadEvent, OnAfterSceneLoad);
     }
 
     private void OnDisable()
     {
-        EventManager.RemoveEventListener<int>(ConstString.UpdateHightLightEvent, OnShowHighLight);
         EventManager.RemoveEventListener<int, int>(ConstString.EndDragItemEvent, OnEndDragItem);
         EventManager.RemoveEventListener<GameScene>(ConstString.AfterSceneLoadEvent, OnAfterSceneLoad);
     }
@@ -56,10 +54,6 @@ public class InventoryManager : MonoSingleton<InventoryManager>
         EventManager.InvokeEventListener(ConstString.RefreshInventoryUIEvent, inventoryItemDataList.list);
     }
 
-    private void OnShowHighLight(int itemIndex)
-    {
-        
-    }
     private void OnAfterSceneLoad(GameScene gameScene)
     {
         if (gameScene == GameScene.YardScene)
@@ -67,7 +61,14 @@ public class InventoryManager : MonoSingleton<InventoryManager>
         EventManager.InvokeEventListener(ConstString.RefreshInventoryUIEvent,inventoryItemDataList.list);
     }
 
+    public void SetSelectedItemId(int itemId)
+    {
+        selectedItemId = itemId;
+    }
+    public int GetSelectedItemId() => selectedItemId;
+
     public int GetPlayerMoney() => playerMoney;
+
     private void InitInventory()
     {
         inventoryItemsDict.Clear();

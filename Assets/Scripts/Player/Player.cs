@@ -12,6 +12,7 @@ public class Player : MonoBehaviour,ISaveLoad
     private Rigidbody2D rb;
 
     [SerializeField]private float speed;
+
     private float inputX;
     private float inputY;
 
@@ -24,7 +25,7 @@ public class Player : MonoBehaviour,ISaveLoad
 
     private Vector2 moveInput;
     private bool leftShift;
-    private bool useTool;
+    private bool isUseTool;
 
     public float moveEndX;
     public float moveEndY;
@@ -35,6 +36,9 @@ public class Player : MonoBehaviour,ISaveLoad
     private int mouseX;
     private int mouseY;
     private int moveBool;
+
+    private Vector3 mousePosition;
+    private ItemDetails itemDetails;
 
 
 
@@ -52,26 +56,20 @@ public class Player : MonoBehaviour,ISaveLoad
 
     private void OnEnable()
     {
-        /*EventCenter.BeforeSceneUnloadEvent += OnBeforeSceneUnloadEvent;
-        EventCenter.AfterSceneLoadedEvent += OnAfterSceneLoadedEvent;
-        EventCenter.MoveToPosition += OnMoveToPosition;
-        EventCenter.MouseClickedEvent += OnMouseClickedEvent;
-        EventCenter.UpdateGameStateEvent += OnUpdateGameStateEvent;*/
+
         EventManager.AddEventListener<int>(ConstString.StartNewGameEvent, OnStartNewGameEvent);
         EventManager.AddEventListener<GameScene, Vector3>(ConstString.TransitionSceneEvent, OnTransitionScene);
-
+        EventManager.AddEventListener<int,bool>(ConstString.SelectedItemEvent, OnSelectedItem);
+        EventManager.AddEventListener(ConstString.SelectedItemAndClickEvent, OnSelectedItemAndClick);
     }
 
     private void OnDisable()
     {
-     /*   EventCenter.BeforeSceneUnloadEvent -= OnBeforeSceneUnloadEvent;
-        EventCenter.AfterSceneLoadedEvent -= OnAfterSceneLoadedEvent;
-        EventCenter.MoveToPosition -= OnMoveToPosition;
-        EventCenter.MouseClickedEvent -= OnMouseClickedEvent;
-        EventCenter.UpdateGameStateEvent -= OnUpdateGameStateEvent;*/
 
         EventManager.RemoveEventListener<int>(ConstString.StartNewGameEvent, OnStartNewGameEvent);
         EventManager.RemoveEventListener<GameScene, Vector3>(ConstString.TransitionSceneEvent, OnTransitionScene);
+        EventManager.RemoveEventListener<int,bool>(ConstString.SelectedItemEvent, OnSelectedItem);
+        EventManager.RemoveEventListener(ConstString.SelectedItemAndClickEvent, OnSelectedItemAndClick);
     }
 
     private void Update()
@@ -105,6 +103,34 @@ public class Player : MonoBehaviour,ISaveLoad
         moveEndY = -1;
         SwitchPlayerAnimation();
     }
+
+    private void OnSelectedItem(int itemId,bool isSelected)
+    {
+        itemDetails = isSelected == true ? ItemManager.Instance.GetItemDetails(itemId) : null; 
+    }
+    private void OnSelectedItemAndClick()
+    {
+         if(isUseTool && itemDetails==null)
+             return;
+        mousePosition = CursorManager.Instance.GetMousePosition();
+
+        if (itemDetails.itemType != ItemType.Seed && itemDetails.itemType != ItemType.Commodity && itemDetails.itemType != ItemType.Furniture)
+        {          
+            mouseInputX = mousePosition.x - transform.position.x;
+            mouseInputY = mousePosition.y - (transform.position.y + 0.85f);
+
+            if (Mathf.Abs(mouseX) > Mathf.Abs(mouseY))
+                mouseY = 0;
+            else
+                mouseX = 0;
+
+            StartCoroutine(UseTool(mousePosition, itemDetails));
+        }
+        else
+        {
+            EventManager.InvokeEventListener(ConstString.DoActionAfterMoveEvent,mousePosition,itemDetails);
+        }
+    }
     private void OnStartNewGameEvent(int obj)
     {
         transform.position = Settings.GameStartPlayerPos;
@@ -123,33 +149,11 @@ public class Player : MonoBehaviour,ISaveLoad
         }
     }
 
-    private void OnMouseClickedEvent(Vector3 mouseWorldPos, ItemDetails itemDetails)
+    private IEnumerator UseTool(Vector3 mouseWorldPos, ItemDetails itemDetails)
     {
-        if (useTool)
-            return;
-
-        if (itemDetails.itemType != ItemType.Seed && itemDetails.itemType != ItemType.Commodity && itemDetails.itemType != ItemType.Furniture)
-        {
-            mouseInputX = mouseWorldPos.x - transform.position.x;
-            mouseInputY = mouseWorldPos.y - (transform.position.y + 0.85f);
-
-            if (Mathf.Abs(mouseX) > Mathf.Abs(mouseY))
-                mouseY = 0;
-            else
-                mouseX = 0;
-
-            StartCoroutine(UseToolRoutine(mouseWorldPos, itemDetails));
-        }
-        else
-        {
-            //EventCenter.CallExecuteActionAfterAnimation(mouseWorldPos, itemDetails);
-        }
-    }
-
-    private IEnumerator UseToolRoutine(Vector3 mouseWorldPos, ItemDetails itemDetails)
-    {
-        useTool = true;
+        isUseTool = true;
         yield return null;
+
         foreach (Animator anim in allAnimators)
         {
             anim.SetTrigger("UseTool");
@@ -158,10 +162,10 @@ public class Player : MonoBehaviour,ISaveLoad
             anim.SetFloat("InputY", mouseY);
         }
         yield return new WaitForSeconds(0.45f);
-        //EventCenter.CallExecuteActionAfterAnimation(mouseWorldPos, itemDetails);
+        EventManager.InvokeEventListener(ConstString.DoActionAfterMoveEvent, mousePosition, itemDetails);
         yield return new WaitForSeconds(0.25f);
 
-        useTool = false;
+        isUseTool = false;
         inputDisable = false;
     }
 

@@ -1,3 +1,4 @@
+using Farm.Tool;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,10 +7,9 @@ public class AnimatorOverride : MonoBehaviour
 {
     private Animator[] animators; 
 
-    public SpriteRenderer holdItem;
+    [SerializeField]private SpriteRenderer holdItem;
 
-    [Header("·â×°µÄAnimatorType")]
-    public List<AnimatorType> animatorTypes;
+    [SerializeField]private List<AnimatorType> animatorTypes;
 
     private Dictionary<string, Animator> animatorNameDict = new Dictionary<string, Animator>();
 
@@ -25,44 +25,28 @@ public class AnimatorOverride : MonoBehaviour
 
     private void OnEnable()
     {
-       /* EventCenter.ItemSelectedEvent += OnItemSelectedEvent;
-        EventCenter.BeforeSceneUnloadEvent += OnBeforSceneUnloadEvent;
-        EventCenter.HarvestAtPlayerPosition += OnHarvestAtPlayerPosition;*/
+        EventManager.AddEventListener(ConstString.BeforeSceneLoadEvent, OnBeforSceneLoad);
+        EventManager.AddEventListener<int, bool>(ConstString.SelectedItemEvent, OnSelectedItem);
     }
 
     private void OnDisable()
     {
-       /* EventCenter.ItemSelectedEvent -= OnItemSelectedEvent;
-        EventCenter.BeforeSceneUnloadEvent -= OnBeforSceneUnloadEvent;
-        EventCenter.HarvestAtPlayerPosition -= OnHarvestAtPlayerPosition;*/
+        EventManager.AddEventListener(ConstString.BeforeSceneLoadEvent, OnBeforSceneLoad);
+        EventManager.RemoveEventListener<int, bool>(ConstString.SelectedItemEvent, OnSelectedItem);
     }
 
-    private void OnHarvestAtPlayerPosition(int ID)
-    {
-        //Sprite itemSprite = InventoryManager.Instance.GetItemDetails(ID).itemOnWorldSprite;
-        /*if (!holdItem.gameObject.activeInHierarchy)
-        {
-            StartCoroutine(ShowItem(itemSprite));
-        }*/
+    #region Events
 
-    }
-
-    private IEnumerator ShowItem(Sprite itemSprite)
-    {
-        holdItem.sprite = itemSprite;
-        holdItem.gameObject.SetActive(true);
-        yield return new WaitForSeconds(1f);
-        holdItem.gameObject.SetActive(false);
-    }
-
-    private void OnBeforSceneUnloadEvent()
+    private void OnBeforSceneLoad()
     {
         holdItem.enabled = false;
         SwitchAnimator(PartType.None);
     }
 
-    private void OnItemSelectedEvent(ItemDetails itemDetails, bool isSelected)
+    private void OnSelectedItem(int itemId,bool isSelected)
     {
+        ItemDetails itemDetails = ItemManager.Instance.GetItemDetails(itemId);
+
         PartType currentType = itemDetails.itemType switch
         {
             ItemType.Seed => PartType.Carry,
@@ -98,6 +82,25 @@ public class AnimatorOverride : MonoBehaviour
         SwitchAnimator(currentType);
     }
 
+    private void OnHarvestAtPlayerPosition(int ID)
+    {
+        //Sprite itemSprite = InventoryManager.Instance.GetItemDetails(ID).itemOnWorldSprite;
+        /*if (!holdItem.gameObject.activeInHierarchy)
+        {
+            StartCoroutine(ShowItem(itemSprite));
+        }*/
+
+    }
+
+    #endregion
+
+    private IEnumerator ShowItem(Sprite itemSprite)
+    {
+        holdItem.sprite = itemSprite;
+        holdItem.gameObject.SetActive(true);
+        yield return new WaitForSeconds(1f);
+        holdItem.gameObject.SetActive(false);
+    }
 
     private void SwitchAnimator(PartType partType)
     {

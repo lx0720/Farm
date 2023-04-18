@@ -12,30 +12,26 @@ public class SlotUI : MonoBehaviour,IBeginDragHandler,IDragHandler,IEndDragHandl
     private Button slotButton;
 
     private int itemAmount;
-    private int itemIndex;
+    private int slotIndex;
+    private bool clickStatus;
     private ItemDetails itemDetails;
 
     private void Awake()
     {
         slotButton = GetComponent<Button>();
-        slotButton.onClick.AddListener(UpdateHighLightShow);
+        slotButton.onClick.AddListener(SelectedItem);
     }
 
-    public void InitSlotUI(int index)
+    public void InitSlotUI(int slotIndex)
     {
-        itemIndex = index;
-        itemAmount = 0;
-        itemImage.enabled = false;
-        text.enabled = false;
+        this.slotIndex = slotIndex;
+        SetSlotInitStatus();
     }
-
     public void RefreshSlotUI()
     {
         if (itemDetails == null)
         {
-            itemImage.enabled = false;
-            text.enabled = false;
-            slotButton.interactable = false;
+            SetSlotInitStatus();
         }
         else
         {
@@ -47,6 +43,22 @@ public class SlotUI : MonoBehaviour,IBeginDragHandler,IDragHandler,IEndDragHandl
         }
     }
 
+    private void SelectedItem()
+    {
+        clickStatus = !clickStatus;
+        EventManager.InvokeEventListener(ConstString.SelectedItemEvent, itemDetails.itemId, clickStatus);
+    }
+
+    #region SetAndGet
+    public void SetSlotInitStatus()
+    {
+        itemDetails = null;
+        itemAmount = 0;
+        clickStatus = false;
+        itemImage.enabled = false;
+        text.enabled = false;
+        slotButton.interactable = false;
+    }
     public void SetItemDetails(ItemDetails itemDetails)
     {
         this.itemDetails = itemDetails;
@@ -55,31 +67,22 @@ public class SlotUI : MonoBehaviour,IBeginDragHandler,IDragHandler,IEndDragHandl
     {
         itemAmount = number;
     }
-
-    public int GetItemId() => itemDetails.itemId;
-    public int GetItemIndex() => itemIndex;
-
-    public void SetCloseStatus()
-    {
-        itemImage.enabled = false;
-        text.enabled = false;
-        slotButton.interactable = false;
-    }
-
-    private void UpdateHighLightShow()
-    {
-        EventManager.InvokeEventListener(ConstString.UpdateHightLightEvent, itemIndex);
-    }
-
-    public void SetHighLightShow(bool isActive)
+    public void SetHighLightStatus(bool isActive)
     {
         highLight.SetActive(isActive);
+        clickStatus = isActive;
     }
 
+    public int GetItemId() => itemDetails != null ? itemDetails.itemId : -1;
+    public int GetSlotIndex() => slotIndex;
+
+    #endregion
+
+    #region Interface
     public void OnBeginDrag(PointerEventData eventData)
     {
-        SetHighLightShow(false);
-        EventManager.InvokeEventListener(ConstString.BeginDragItemEvent, itemIndex);
+        SetHighLightStatus(false);
+        EventManager.InvokeEventListener(ConstString.BeginDragItemEvent, slotIndex);
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -92,15 +95,16 @@ public class SlotUI : MonoBehaviour,IBeginDragHandler,IDragHandler,IEndDragHandl
         GameObject go = eventData.pointerCurrentRaycast.gameObject;
         if (go == null)
         {
-            EventManager.InvokeEventListener(ConstString.EndDragItemEvent, itemIndex, -1);
+            EventManager.InvokeEventListener(ConstString.EndDragItemEvent, slotIndex, -1);
         }
         else
         {
             SlotUI slotUI = go.GetComponent<SlotUI>();
             if (slotUI != null)
             {
-                EventManager.InvokeEventListener(ConstString.EndDragItemEvent, itemIndex, slotUI.itemIndex);
+                EventManager.InvokeEventListener(ConstString.EndDragItemEvent, slotIndex, slotUI.slotIndex);
             }
         }
     }
+    #endregion 
 }

@@ -14,12 +14,10 @@ public class InventoryUI : MonoBehaviour
     [SerializeField]private Button openBag;
     [SerializeField]private Image dragImage;
     [SerializeField]private TextMeshProUGUI text;
-    private int currentSelectedItem;
+    private int currentSelectedItemId;
 
     private bool bagOpenStatus;
     private List<InventoryItem> inventoryslots;
-
-    private int currentHighLightIndex =-1;
 
     private void Start()
     {
@@ -36,7 +34,7 @@ public class InventoryUI : MonoBehaviour
         EventManager.AddEventListener(ConstString.DragItemEvent, OnDragItem);
         EventManager.AddEventListener<int,int>(ConstString.EndDragItemEvent, OnEndDragItem);
         EventManager.AddEventListener<GameScene>(ConstString.AfterSceneLoadEvent, OnAfterSceneLoad);
-        EventManager.AddEventListener<int>(ConstString.UpdateHightLightEvent, OnShowHightLight);
+        EventManager.AddEventListener<int,bool>(ConstString.SelectedItemEvent, OnSelectedItem);
     }
 
     private void OnDisable()
@@ -47,31 +45,34 @@ public class InventoryUI : MonoBehaviour
         EventManager.RemoveEventListener(ConstString.DragItemEvent, OnDragItem);
         EventManager.RemoveEventListener<int,int>(ConstString.EndDragItemEvent, OnEndDragItem);
         EventManager.RemoveEventListener<GameScene>(ConstString.AfterSceneLoadEvent, OnAfterSceneLoad);
-        EventManager.RemoveEventListener<int>(ConstString.UpdateHightLightEvent, OnShowHightLight);
+        EventManager.RemoveEventListener<int,bool>(ConstString.SelectedItemEvent, OnSelectedItem);
     }
 
 
-
+    #region Event
     private void OnRefreshInventoryUI(List<InventoryItem> inventoryslots)
     {
         this.inventoryslots = inventoryslots;
         RefreshInventoryUI(inventoryslots);
     }
+
     private void OnBeforeSceneLoad()
     {
         //OpenBagUI();
     }
+
     private void OnAfterSceneLoad(GameScene obj)
     {
         RefreshInventoryUI(inventoryslots);
         ClearAllHighLight();
         CloseBagUI();
     }
-    private void OnBeginDragItem(int index)
+
+    private void OnBeginDragItem(int slotIndex)
     {
-        slots[index].SetCloseStatus();
+        //slots[index].SetSlotInitStatus();
         dragImage.enabled = true;
-        dragImage.sprite = ItemManager.Instance.GetItemDetails(slots[index].GetItemId()).itemIcon;
+        dragImage.sprite = ItemManager.Instance.GetItemDetails(slots[slotIndex].GetItemId()).itemIcon;
     }
 
     private void OnDragItem()
@@ -84,6 +85,16 @@ public class InventoryUI : MonoBehaviour
         dragImage.sprite = null;
         dragImage.enabled = false;
     }
+
+    private void OnSelectedItem(int itemId,bool isSelected)
+    {
+        ClearAllHighLight();
+        TurnOnSelectedItemHighLight(itemId,isSelected);
+        InventoryManager.Instance.SetSelectedItemId(currentSelectedItemId);
+    }
+
+    #endregion
+
     private void InitItemUI()
     {
         for (int i = 0; i < slots.Count; i++)
@@ -91,22 +102,7 @@ public class InventoryUI : MonoBehaviour
             slots[i].InitSlotUI(i);
         }
     }
-    private void OnShowHightLight(int itemIndex)
-    {
-        currentSelectedItem = slots[itemIndex].GetItemId();
-        ClearAllHighLight();
-        if (itemIndex != currentHighLightIndex)
-        {
-            currentHighLightIndex = itemIndex;
-            slots[currentHighLightIndex].SetHighLightShow(true);
-        }
-        else
-        {
-            currentHighLightIndex = -1;
-            currentSelectedItem = -1;
-        }
-
-    }
+   
     private void CloseBagUI()
     {
         bagOpenStatus = false;
@@ -145,14 +141,18 @@ public class InventoryUI : MonoBehaviour
         text.text = InventoryManager.Instance.GetPlayerMoney().ToString();
     }
 
-    public int GetChooseItemId() => currentSelectedItem;
+    public int GetChooseItemId() => currentSelectedItemId;
 
     private void ClearAllHighLight()
     {
         for (int i = 0; i < slots.Count; i++)
         {
-            slots[i].SetHighLightShow(false);
+            slots[i].SetHighLightStatus(false);
         }
     }
-
+    private void TurnOnSelectedItemHighLight(int itemId,bool isSelected)
+    {
+        int slotIndex = slots.Find(i => i.GetItemId() == itemId).GetSlotIndex();
+        slots[slotIndex].SetHighLightStatus(isSelected);
+    }
 }

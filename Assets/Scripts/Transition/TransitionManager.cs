@@ -26,8 +26,6 @@ namespace Farm.Transition
 
         private void OnEnable()
         {
-            //EventCenter.TransitionEvent += OnTransitionEvent;
-            //EventCenter.EndGameEvent += OnEndGameEvent;
             EventManager.AddEventListener<GameScene, Vector3>(ConstString.TransitionSceneEvent, OnTransitionEvent);
             EventManager.AddEventListener(ConstString.BackToMenuEvent, OnBackToMenu);
             EventManager.AddEventListener(ConstString.EndGameEvent, OnEndGameEvent);
@@ -36,8 +34,6 @@ namespace Farm.Transition
 
         private void OnDisable()
         {
-            // EventCenter.TransitionEvent -= OnTransitionEvent;
-            // EventCenter.EndGameEvent -= OnEndGameEvent;
             EventManager.RemoveEventListener<GameScene, Vector3>(ConstString.TransitionSceneEvent, OnTransitionEvent);
             EventManager.RemoveEventListener(ConstString.BackToMenuEvent, OnBackToMenu);
             EventManager.RemoveEventListener(ConstString.EndGameEvent, OnEndGameEvent);
